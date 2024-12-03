@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   seed     = "npm ts-node prisma/seed.ts"
@@ -13,6 +7,140 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Categoria {
+  id        BigInt     @id @default(autoincrement())
+  nombre    String     @unique
+  productos Producto[]
+}
+
+model Talla {
+  id        BigInt     @id @default(autoincrement())
+  talla     String     @unique
+  productos Producto[]
+}
+
+model Color {
+  id        BigInt     @id @default(autoincrement())
+  color     String     @unique
+  productos Producto[]
+}
+
+model Material {
+  id        BigInt     @id @default(autoincrement())
+  material  String     @unique
+  productos Producto[]
+}
+
+model Producto {
+  id                  BigInt              @id @default(autoincrement())
+  nombre              String
+  descripcion         String?
+  precio              Float
+  cantidadEnStock     Int
+  sku                 String              @unique
+  categoria           Categoria           @relation(fields: [categoriaId], references: [id])
+  categoriaId         BigInt
+  talla               Talla               @relation(fields: [tallaId], references: [id])
+  tallaId             BigInt
+  color               Color               @relation(fields: [colorId], references: [id])
+  colorId             BigInt
+  material            Material            @relation(fields: [materialId], references: [id])
+  materialId          BigInt
+  imagenes            ImagenProducto[]
+  itemsPedido         ItemPedido[]
+  inventario          Inventario?
+  productoProveedores ProductoProveedor[]
+}
+
+model ImagenProducto {
+  id         BigInt   @id @default(autoincrement())
+  producto   Producto @relation(fields: [productoId], references: [id])
+  productoId BigInt
+  url        String
+}
+
+model Cliente {
+  id          BigInt      @id @default(autoincrement())
+  nombre      String
+  apellidos   String
+  email       String      @unique
+  telefono    String?
+  direcciones Direccion[]
+  pedidos     Pedido[]
+}
+
+model Direccion {
+  id           BigInt   @id @default(autoincrement())
+  cliente      Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId    BigInt
+  direccion    String
+  ciudad       String
+  codigoPostal String
+  pais         String
+  Pedido       Pedido[]
+}
+
+model Pedido {
+  id               BigInt       @id @default(autoincrement())
+  cliente          Cliente      @relation(fields: [clienteId], references: [id])
+  clienteId        BigInt
+  fecha            DateTime     @default(now())
+  estado           String
+  montoTotal       Float
+  direccionEnvio   Direccion    @relation(fields: [direccionEnvioId], references: [id])
+  direccionEnvioId BigInt
+  itemsPedido      ItemPedido[]
+  pagos            Pago[]
+}
+
+model ItemPedido {
+  id             BigInt   @id @default(autoincrement())
+  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId       BigInt
+  producto       Producto @relation(fields: [productoId], references: [id])
+  productoId     BigInt
+  cantidad       Int
+  precioUnitario Float
+}
+
+model Pago {
+  id         BigInt   @id @default(autoincrement())
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId   BigInt
+  monto      Float
+  fecha      DateTime @default(now())
+  metodoPago String
+  estado     String
+}
+
+model Inventario {
+  id                  BigInt   @id @default(autoincrement())
+  producto            Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  productoId          BigInt   @unique
+  cantidadEnStock     Int
+  ultimaActualizacion DateTime @default(now())
+}
+
+model Proveedor {
+  id                  BigInt              @id @default(autoincrement())
+  nombre              String
+  contacto            String?
+  telefono            String?
+  email               String?
+  direccion           String?
+  productoProveedores ProductoProveedor[]
+}
+
+model ProductoProveedor {
+  id          BigInt    @id @default(autoincrement())
+  producto    Producto  @relation(fields: [productoId], references: [id])
+  productoId  BigInt
+  proveedor   Proveedor @relation(fields: [proveedorId], references: [id])
+  proveedorId BigInt
+}
+
+// Existing models
 
 enum UserRole {
   ADMIN
@@ -35,12 +163,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
