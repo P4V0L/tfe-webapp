@@ -7,7 +7,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {LoginSchema} from "@/schemas/auth/auth";
 import {z} from "zod";
 import {useState, useTransition} from "react";
-import {useSearchParams} from "next/navigation";
+import {redirect, useSearchParams} from "next/navigation";
 import {Input} from "@/components/ui/input";
 import {FormError} from "@/components/form-error";
 import {FormSuccess} from "@/components/form-success";
@@ -16,7 +16,6 @@ import {login} from "@/actions/auth/login";
 
 export const LoginForm = () => {
     const searchParams = useSearchParams();
-    // const callbackUrl = searchParams.get("callbackUrl");
     const urlError = searchParams.get("error") === "OAuthAccountNotLinked"
         ? "Email already in use with different provider!"
         : "";
@@ -38,8 +37,12 @@ export const LoginForm = () => {
 
         console.log('On submit')
 
-        login(values).then(() => {
-            setSuccess("Inicio de sesión realizado");
+        login(values).then((resp) => {
+            if (resp?.error) {
+                setError(resp.error)
+            }
+
+            redirect('')
         })
     };
 
