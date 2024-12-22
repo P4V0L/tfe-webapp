@@ -1,9 +1,8 @@
-// auth.ts
 import authConfig from "./auth.config";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
-import { getUserById } from "@/data/user";
 import NextAuth from "next-auth";
+import {getUserById} from "@/actions/data/user";
 
 export const {
     handlers,
@@ -16,7 +15,9 @@ export const {
             if (token.sub && session.user) {
                 session.user.id = token.sub;
             }
-
+            if (session.user) {
+                session.user.email = token.email as string;
+            }
             return session;
         },
         async jwt({ token }) {
@@ -25,6 +26,7 @@ export const {
             const existingUser = await getUserById(token.sub);
             if (!existingUser) return token;
 
+            token.email = existingUser.email || "";
             return token;
         }
     },

@@ -7,8 +7,6 @@ export const authRoutes = [
     "/auth/register"
 ]
 
-export const adminRoutesPrefix = "/admin"
-
 export const apiAuthPrefix = "/api/auth"
 
 

@@ -1,14 +1,15 @@
-import type { NextAuthConfig } from "next-auth";
+import type { NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials";
-import * as bcrypt from "bcryptjs";
-import {getUserByEmail} from "@/data/user";
-import {LoginSchema} from "@/schemas/login";
+
+import { LoginSchema } from "@/schemas/auth/auth";
+import { getUserByEmail } from "@/actions/data/user";
+import bcrypt from "bcryptjs";
 
 export default {
     providers: [
         Credentials({
             credentials: {
-                email: { label: "Email", type: "email" },
+                username: { label: "Username", type: "text" },
                 password: {  label: "Password", type: "password" }
             },
             async authorize(credentials) {
