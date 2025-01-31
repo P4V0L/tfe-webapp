@@ -1,7 +1,7 @@
 // app/actions/data-actions.ts
 'use server';
 
-import { ProductType } from '@prisma/client';
+import {Color, ProductType} from '@prisma/client';
 import {db} from "@/lib/db"; // Adjust import path
 
 const prisma = db
@@ -93,45 +93,44 @@ export async function getProducts(options?: {
     }
 }
 
+
 export async function getTopProducts() {
-    try {
-        const products = await prisma.product.findMany({
-            take: 4, // Get only the top 4 products
-            include: {
-                categories: {
-                    include: {
-                        category: {
-                            select: { name: true }, // Extract only category names
-                        },
+    const products = await prisma.product.findMany({
+        // ...
+        include: {
+            variants: {
+                select: { color: true },
+            },
+            images: {
+                select: { url: true },
+            },
+            categories: {
+                include: {
+                    category: {
+                        select: { name: true },
                     },
                 },
-                variants: {
-                    select: { color: true }, // Extract only color
-                },
-                images: {
-                    select: { url: true }, // Extract only image URLs
-                },
             },
-        });
+        },
+    });
 
-        // Format response
-        return products.map((product) => ({
-            id: product.id,
-            name: product.name.split('-')[0],
-            description: product.description,
-            basePrice: product.basePrice,
-            type: product.type,
-            allowedSizeTypes: product.allowedSizeTypes,
-            createdAt: product.createdAt,
-            updatedAt: product.updatedAt,
-            categories: product.categories.map((cat) => cat.category.name), // Flatten category names
-            colors: product.variants.map((variant) => variant.color), // Flatten colors
-            images: product.images.map((image) => image.url), // Flatten images
-        }));
-    } catch (error) {
-        console.error("Error fetching top products:", error);
-        throw error;
-    }
+    return products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description ?? "",
+        basePrice: product.basePrice ?? 0,
+        type: product.type,
+        allowedSizeTypes: product.allowedSizeTypes,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+        // Filter out null
+        colors: product.variants
+            .map((variant) => variant.color)
+            .filter((color): color is Color => color !== null),
+
+        images: product.images.map((image) => image.url),
+        categories: product.categories.map((c) => c.category.name),
+    }));
 }
 
 export async function getProductById(id: string) {

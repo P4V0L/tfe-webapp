@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import Testimonial from "@/components/landing/Testimonial";
+import {TestimonialUser} from "@/models/testimonials";
 
-export function InfiniteTestimonials({ testimonials }: { testimonials: any[] }) {
-    // Double the testimonials array to create a seamless loop
+export function InfiniteTestimonials({ testimonials }: { testimonials: TestimonialUser[] }) {
     const doubledTestimonials = [...testimonials, ...testimonials]
     const [isHovered, setIsHovered] = useState(false)
 
@@ -22,7 +22,7 @@ export function InfiniteTestimonials({ testimonials }: { testimonials: any[] }) 
                 }}
             >
                 {doubledTestimonials.map((testimonial, index) => (
-                    <Testimonial testimonial={testimonial} key={`${testimonial.userId}-${index}`} />
+                    <Testimonial testimonial={testimonial} key={`${testimonial.name}-${index}`} />
                 ))}
             </div>
         </div>

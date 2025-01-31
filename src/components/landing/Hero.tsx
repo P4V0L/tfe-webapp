@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import Image from "next/image";
 
 interface HeroProps {
     title: string
@@ -11,7 +12,13 @@ export function Hero({ title, image, ctaText, ctaLink }: HeroProps) {
     return (
         <section className="relative h-[600px] -mt-8">
             <div className="absolute inset-0">
-                <img src={image || "/placeholder.svg"} alt="Hero image" className="w-full h-full object-cover" />
+                <Image
+                    src={image || "/placeholder.svg"}
+                    alt="Hero image"
+                    width={1920}
+                    height={1080}
+                    className="w-full h-full object-cover"
+                />
             </div>
             <div className="absolute inset-0 bg-black/30" />
             <div className="relative h-full flex items-center justify-center text-center">

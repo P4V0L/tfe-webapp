@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link";
 import {Button} from "@/components/ui/button";
 import {logout} from "@/actions/auth/logout";
 import {useRouter} from "next/navigation";
