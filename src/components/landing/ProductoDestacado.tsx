@@ -24,7 +24,7 @@ export default function ProductoDestacado({ product }: ProductoDestacadoProps) {
                     height={300}
                 />
                 <div className="p-4">
-                    <h3 className="font-medium">{product.name}</h3>
+                    <h3 className="font-medium">{product.name.split('-')[0]}</h3>
                     <p className="text-lg font-semibold text-primary">
                         {product.basePrice}€
                     </p>

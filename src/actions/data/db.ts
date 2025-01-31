@@ -96,7 +96,6 @@ export async function getProducts(options?: {
 
 export async function getTopProducts() {
     const products = await prisma.product.findMany({
-        // ...
         include: {
             variants: {
                 select: { color: true },
@@ -112,6 +111,7 @@ export async function getTopProducts() {
                 },
             },
         },
+        take: 4
     });
 
     return products.map((product) => ({
