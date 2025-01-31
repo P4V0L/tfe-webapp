@@ -1,16 +1,15 @@
 'use client'
 
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { logout } from "@/actions/auth/logout";
-import { useRouter } from "next/navigation";
 import {Hero} from "@/components/landing/Hero";
 import {Categorias} from "@/components/landing/Categorias";
 import {InfiniteTestimonials} from "@/components/landing/InfiniteTestimonials";
 import {useEffect, useState } from "react";
 import { TestimonialUser } from "@/models/testimonials";
-import { getTestimonials } from "@/actions/data/db";
+import {getCategories, getTestimonials, getTopProducts} from "@/actions/data/db";
 import {SessionProvider} from "next-auth/react";
+import { Category } from "@prisma/client";
+import {Card, CardContent} from "@/components/ui/card";
+import {TopProduct} from "@/models/product";
 
 const heroInfo = {
     title: "¡Rebajas de invierno! Hasta 50% de descuento",
@@ -20,10 +19,9 @@ const heroInfo = {
 }
 
 export default function Home() {
-    const router = useRouter();
-
     const [testimonials, setTestimonials] = useState<TestimonialUser[]>([]);
-
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [productosDestacados, setProductosDestacados] = useState<TopProduct[]>([]);
 
     useEffect(() => {
         getTestimonials().then((res) => {
@@ -31,58 +29,56 @@ export default function Home() {
                 setTestimonials(res);
             }
         });
+
+        getCategories().then((res) => {
+            if (res) {
+                setCategories(res);
+            }
+        });
+
+        getTopProducts().then((res) => {
+            if (res) {
+                setProductosDestacados(res);
+            }
+        })
     }, []);
-
-    const categories = [
-        {
-            name: "Ropa Mujer",
-            image: "",
-            href: "/catalogo?category=mujer",
-        },
-        {
-            name: "Ropa Hombre",
-            image: "",
-            href: "/catalogo?category=hombre",
-        },
-        {
-            name: "Accesorios",
-            image: "",
-            href: "/catalogo?category=accesorios",
-        },
-        {
-            name: "Novedades",
-            image: "",
-            href: "/catalogo?category=novedades",
-        },
-    ]
-
-    const handleLogout = async () => {
-        await logout();
-        router.push('/');
-    }
 
     return (
         <SessionProvider>
             <Hero {...heroInfo} />
             <Categorias categories={categories} />
-            <div className="flex flex-col items-center justify-center fit-content gap-4 mt-10">
-                <Link href="/auth/login" passHref>
-                    <Button>
-                        Go to Login
-                    </Button>
-                </Link>
-                <Link href="/auth/register" passHref>
-                    <Button>
-                        Go to Register
-                    </Button>
-                </Link>
-                <form action={handleLogout}>
-                    <Button type="submit">
-                        Logout
-                    </Button>
-                </form>
-            </div>
-            <section className="container overflow-hidden">
+            <section className="container mt-10">
+                <h2 className="text-3xl font-serif font-bold mb-8 text-primary-foreground">Productos destacados</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {productosDestacados.map((product) => (
+                        <Card key={product.id} className="overflow-hidden">
+                            <CardContent className="p-0">
+                                <img
+                                    src={product.images?.[0] || "/placeholder.svg"}
+                                    alt={product.name}
+                                    className="w-full h-64 object-cover"
+                                />
+                                <div className="p-4">
+                                    <h3 className="font-medium">{product.name}</h3>
+                                    <p className="text-lg font-semibold text-primary">{product.basePrice}€</p>
+                                    <div className="mt-2">
+                                        {product.categories?.map((category, index) => (
+                                            <span key={index} className="text-sm text-muted bg-accent py-1 px-2  rounded-xl">
+                                                {category}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="flex items-center mt-2">
+                                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: product.colors?.[0].hexCode }} />
+                                        <span className="ml-2 text-sm">{product.colors?.[0].name}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </section>
+            <section className="container overflow-hidden mt-10">
                 <h2 className="text-3xl font-serif font-bold mb-8 text-primary-foreground text-start">Testimonios de clientes</h2>
                 {testimonials && <InfiniteTestimonials testimonials={testimonials} />}
             </section>

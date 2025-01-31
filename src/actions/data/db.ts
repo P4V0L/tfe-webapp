@@ -93,6 +93,47 @@ export async function getProducts(options?: {
     }
 }
 
+export async function getTopProducts() {
+    try {
+        const products = await prisma.product.findMany({
+            take: 4, // Get only the top 4 products
+            include: {
+                categories: {
+                    include: {
+                        category: {
+                            select: { name: true }, // Extract only category names
+                        },
+                    },
+                },
+                variants: {
+                    select: { color: true }, // Extract only color
+                },
+                images: {
+                    select: { url: true }, // Extract only image URLs
+                },
+            },
+        });
+
+        // Format response
+        return products.map((product) => ({
+            id: product.id,
+            name: product.name.split('-')[0],
+            description: product.description,
+            basePrice: product.basePrice,
+            type: product.type,
+            allowedSizeTypes: product.allowedSizeTypes,
+            createdAt: product.createdAt,
+            updatedAt: product.updatedAt,
+            categories: product.categories.map((cat) => cat.category.name), // Flatten category names
+            colors: product.variants.map((variant) => variant.color), // Flatten colors
+            images: product.images.map((image) => image.url), // Flatten images
+        }));
+    } catch (error) {
+        console.error("Error fetching top products:", error);
+        throw error;
+    }
+}
+
 export async function getProductById(id: string) {
     try {
         return await prisma.product.findUnique({

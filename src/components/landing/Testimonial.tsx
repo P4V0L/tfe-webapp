@@ -14,7 +14,7 @@ const Testimonial = ({testimonial}: TestimonialProps) => {
                 className="w-16 h-16 rounded-full mx-auto mb-4"
             />
             <h3 className="font-medium mb-2">{testimonial.name}</h3>
-            <p className="text-muted-foreground">"{testimonial.content}"</p>
+            <p className="text-muted-foreground">&ldquo;{testimonial.content}&rdquo;</p>
         </Card>
     )
 }

@@ -16,7 +16,7 @@ export function Hero({ title, image, ctaText, ctaLink }: HeroProps) {
             <div className="absolute inset-0 bg-black/30" />
             <div className="relative h-full flex items-center justify-center text-center">
                 <div className="space-y-4">
-                    <h1 className="text-4xl md:text-6xl font-serif font-bold text-white">{title}</h1>
+                    <h1 className="text-xl md:text-5xl font-serif font-bold text-white">{title}</h1>
                     <Button size="lg" variant="destructive" asChild>
                         <a href={ctaLink}>{ctaText}</a>
                     </Button>
