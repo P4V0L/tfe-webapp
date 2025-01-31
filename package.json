@@ -1,6 +1,7 @@
 {
   "name": "tfe-webapp",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -25,6 +26,7 @@
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
+    "client@latest": "link:prisma/client@latest",
     "clsx": "^2.1.1",
     "lucide-react": "^0.456.0",
     "next": "15.0.3",
@@ -34,6 +36,7 @@
     "react-hook-form": "^7.53.2",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -43,8 +46,11 @@
     "eslint": "^9.14.0",
     "eslint-config-next": "^15.0.3",
     "postcss": "^8.4.47",
-    "prisma": "^6.0.1",
+    "prisma": "^6.3.0",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.6.3"
+  },
+  "prisma": {
+    "seed": "node --loader ts-node/esm prisma/seed.ts"
   }
 }
