@@ -5,6 +5,8 @@ import { Footer } from "@/components/layout/Footer";
 
 // 1. Import the built-in Google font modules
 import { Merriweather, Merriweather_Sans } from "next/font/google";
+import {SessionProvider} from "next-auth/react";
+import {CartProvider} from "@/providers/cart-provider";
 
 // 2. Configure your fonts & weights
 const merriweather = Merriweather({
@@ -43,9 +45,13 @@ export default function RootLayout({
             <title>Conchi Gimeno</title>
         </head>
         <body className="font-sans bg-secondary text-foreground">
-        <Header />
-        <main className="container mx-auto px-4 py-8">{children}</main>
-        <Footer />
+            <CartProvider>
+                <SessionProvider>
+                    <Header />
+                    <main className="container mx-auto px-4 py-8">{children}</main>
+                    <Footer />
+                </SessionProvider>
+            </CartProvider>
         </body>
         </html>
     );

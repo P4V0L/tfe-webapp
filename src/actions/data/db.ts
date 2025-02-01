@@ -120,6 +120,7 @@ export async function getTopProducts() {
         description: product.description ?? "",
         basePrice: product.basePrice ?? 0,
         type: product.type,
+        slug: product.slug,
         allowedSizeTypes: product.allowedSizeTypes,
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,

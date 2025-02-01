@@ -1,42 +1,53 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import {SiFacebook, SiInstagram, SiX} from "@icons-pack/react-simple-icons";
+import { SiFacebook, SiInstagram, SiX } from "@icons-pack/react-simple-icons"
 
 export function Footer() {
     return (
         <footer className="bg-primary text-white mt-16">
             <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
-                    <div>
+                {/* Use a 1-column layout for mobile and a 3-column layout for md and above */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* Column 1 */}
+                    <div className="flex flex-col items-center text-center justify-center">
                         <h3 className="text-xl font-serif font-bold mb-4">CONCHI GIMENO</h3>
+                        <p className="mb-4 text-secondary-foreground">Tu tienda de siempre, ahora sin moverte de casa.</p>
                     </div>
-                    <div>
-                        <h4 className="font-serif font-bold mb-4">Síguenos</h4>
-                        <ul className="space-x-5 flex flex-row justify-center md:justify-start gap-2">
+
+                    {/* Column 2 */}
+                    <div className="flex flex-col items-center text-center justify-center">
+                        <h2 className="font-serif text-xl font-bold mb-4">Síguenos</h2>
+                        <ul className="flex items-center justify-center space-x-5">
                             <li>
-                                <Link href="#" className="hover:text-accent">
-                                    <SiFacebook />
+                                <Link href="#" className="text-secondary-foreground hover:text-accent">
+                                    <SiFacebook className="h-8 w-8"/>
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="hover:text-accent">
-                                    <SiInstagram />
+                                <Link href="#" className="text-secondary-foreground  hover:text-accent">
+                                    <SiInstagram className="h-8 w-8"/>
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="hover:text-accent">
-                                    <SiX />
+                                <Link href="#" className="text-secondary-foreground  hover:text-accent">
+                                    <SiX className="h-8 w-8"/>
                                 </Link>
                             </li>
                         </ul>
                     </div>
-                    <div>
-                        <h4 className="font-serif font-bold mb-4">Boletín Conchi Gimeno</h4>
-                        <p className="mb-4">Suscríbete a nuestro boletín para recibir ofertas</p>
-                        <form className="flex gap-2 justify-center md:justify-start">
-                            <Input type="email" placeholder="Email address" className="bg-white text-primary" />
-                            <Button variant="destructive">Subscribe</Button>
+
+                    {/* Column 3 */}
+                    <div className="flex flex-col items-center text-center justify-center">
+                        <h4 className="font-serif font-bold text-xl mb-4">Boletín Conchi Gimeno</h4>
+                        <p className="mb-4 text-secondary-foreground">Suscríbete a nuestro boletín para recibir ofertas exclusivas</p>
+                        <form className="flex flex-col sm:flex-row gap-2 justify-center">
+                            <Input
+                                type="email"
+                                placeholder="Email"
+                                className="bg-white text-primary"
+                            />
+                            <Button variant="destructive">Suscribirme</Button>
                         </form>
                     </div>
                 </div>
@@ -44,4 +55,3 @@ export function Footer() {
         </footer>
     )
 }
-

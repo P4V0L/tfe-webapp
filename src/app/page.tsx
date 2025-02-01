@@ -6,7 +6,6 @@ import {InfiniteTestimonials} from "@/components/landing/InfiniteTestimonials";
 import {useEffect, useState } from "react";
 import { TestimonialUser } from "@/models/testimonials";
 import {getCategories, getTestimonials, getTopProducts} from "@/actions/data/db";
-import {SessionProvider} from "next-auth/react";
 import { Category } from "@prisma/client";
 import {TopProduct} from "@/models/product";
 import ProductoDestacado from "@/components/landing/ProductoDestacado";
@@ -44,7 +43,7 @@ export default function Home() {
     }, []);
 
     return (
-        <SessionProvider>
+        <>
             <Hero {...heroInfo} />
             <Categorias categories={categories} />
             <section className="container mt-10">
@@ -59,7 +58,7 @@ export default function Home() {
                 <h2 className="text-3xl font-serif font-bold mb-8 text-primary-foreground text-start">Testimonios de clientes</h2>
                 {testimonials && <InfiniteTestimonials testimonials={testimonials} />}
             </section>
-        </SessionProvider>
+        </>
     );
 }
 

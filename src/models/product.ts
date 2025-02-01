@@ -7,6 +7,7 @@ export interface TopProduct {
     basePrice: number;
     type: string;
     allowedSizeTypes: string[];
+    slug: string;
     createdAt: Date;
     updatedAt: Date;
     categories: string[];

@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { TopProduct } from "@/models/product";
 import Image from "next/image";
+import Link from "next/link";
 
 interface ProductoDestacadoProps {
     product: TopProduct;
@@ -14,6 +15,7 @@ export default function ProductoDestacado({ product }: ProductoDestacadoProps) {
     }
 
     return (
+        <Link href={`/product/${product.slug}`}>
         <Card key={product.id} className="overflow-hidden">
             <CardContent className="p-0">
                 <Image
@@ -39,22 +41,21 @@ export default function ProductoDestacado({ product }: ProductoDestacadoProps) {
                         ))}
                     </div>
                     <div className="flex items-center mt-2">
-                        {product.colors?.[0] && (
-                            <>
+                        {product.colors && (
+                            product.colors.map((color) => (
                                 <div
+                                    key={color.id}
                                     className="w-4 h-4 rounded-full"
                                     style={{
-                                        backgroundColor: product.colors[0].hexCode,
+                                        backgroundColor: color.hexCode,
                                     }}
                                 />
-                                <span className="ml-2 text-sm">
-                                    {product.colors[0].name}
-                                </span>
-                            </>
+                            ))
                         )}
                     </div>
                 </div>
             </CardContent>
         </Card>
+        </Link>
     );
 }
