@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  seed     = "npm ts-node prisma/seed.ts" // Non-standard, comment or remove
+  // seed     = "npm ts-node prisma/seed.ts" // example custom seed command, remove or comment if not used
 }
 
 datasource db {
@@ -72,30 +72,34 @@ model VerificationToken {
 // --------------------------------
 // E-commerce Models
 // --------------------------------
+
+// -- Renamed enum variants to Spanish --
 enum ProductType {
-  CLOTHING
-  HABERDASHERY
-  UNDERWEAR
-  ACCESSORY
-  SPORTSWEAR
-  HOMEWEAR
+  ROPA // was CLOTHING
+  MERCERIA // was HABERDASHERY
+  ROPA_INTERIOR // was UNDERWEAR
+  ACCESORIO // was ACCESSORY
+  ROPA_DEPORTIVA // was SPORTSWEAR
+  PIJAMAS // was HOMEWEAR
 }
 
+// -- Example changes to SizeType as well --
 enum SizeType {
-  CLOTHING_SIZES
-  UNDERWEAR_SIZES
+  TALLAS_ROPA // was CLOTHING_SIZES
+  TALLAS_ROPA_INTERIOR // was UNDERWEAR_SIZES
   UNIVERSAL
-  FOOTWEAR
-  AGE
+  CALZADO // was FOOTWEAR
+  EDAD // was AGE
 }
 
+// -- Example changes to OrderStatus as well --
 enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  RETURNED
+  PENDIENTE // was PENDING
+  PROCESANDO // was PROCESSING
+  ENVIADO // was SHIPPED
+  ENTREGADO // was DELIVERED
+  CANCELADO // was CANCELLED
+  DEVUELTO // was RETURNED
 }
 
 model Product {
@@ -196,7 +200,7 @@ model Order {
   user   User   @relation(fields: [userId], references: [id])
   userId String
 
-  status          OrderStatus @default(PENDING)
+  status          OrderStatus @default(PENDIENTE)
   totalAmount     Float
   shippingAddress Json?
   billingAddress  Json?
@@ -238,12 +242,11 @@ model ProductReview {
   product   Product @relation(fields: [productId], references: [id])
   productId String
 
-  rating  Int // If you need constraints, handle them separately
+  rating  Int
   comment String?
 
   createdAt DateTime @default(now())
 
-  // Ensures one review per product per user
   @@unique([userId, productId])
 }
 
@@ -269,6 +272,5 @@ model CartItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Ensures one unique variant item per cart
   @@unique([cartId, productVariantId])
 }

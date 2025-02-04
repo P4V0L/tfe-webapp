@@ -1,37 +1,51 @@
 import { Prisma, PrismaClient, ProductType, SizeType } from '@prisma/client'
 const prisma = new PrismaClient()
 
+// Generates a unique suffix string for product names and slugs
 function uniqueSuffix() {
     return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
 }
 
-async function main() {
-    console.log(`\nSeeding database\n`)
+// Helper to shuffle an array in-place (Fisher-Yates shuffle)
+function shuffle<T>(array: T[]): T[] {
+    const arr = [...array]
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    return arr
+}
 
-    console.log('Truncating tables in DEV/TEST environment...\n')
+async function main() {
+    console.log("\nSeeding database\n")
+
+    console.log("Truncating tables...\n")
     await clearDatabase()
 
-    console.log('Creating base data...\n')
+    console.log("Creating base data...\n")
     const createdUsers = await createUsers()
 
-    console.log('Creating categories...\n')
+    console.log("Creating categories...\n")
     await createCategories()
     const createdCategories = await prisma.category.findMany()
 
-    console.log('Creating sizes...\n')
+    console.log("Creating sizes...\n")
     await createSizes()
     const createdSizes = await prisma.size.findMany()
 
-    console.log('Creating colors...\n')
+    console.log("Creating colors...\n")
     await createColors()
 
-    console.log('Creating products...\n')
+    console.log("Creating products...\n")
     await createAllProducts(createdSizes, createdCategories)
 
-    console.log('Creating testimonials and product reviews (dev/test only)...\n')
-    await createTestimonialsAndReviews(createdUsers)
+    console.log("Creating product reviews...\n")
+    await createProductReviewsForEveryProduct()
 
-    console.log('\n✅ Seeding completed!\n')
+    console.log("Creating testimonials...\n")
+    await createTestimonials(createdUsers)
+
+    console.log("\n✅ Seeding completed!\n")
 }
 
 async function clearDatabase() {
@@ -53,301 +67,302 @@ async function clearDatabase() {
     ])
 }
 
-/**
- * Crear productos de acuerdo a los tipos deseados:
- * - Mercería (botones, hilos, cremalleras, etc.)
- * - Ropa (blusas, batas, calcetines, etc.)
- * - Ropa Interior (masculina y femenina)
- * - Pijamas (infantiles, mujer, hombre)
- */
 async function createAllProducts(sizes: any[], categories: any[]) {
-    // MERCERÍA (HABERDASHERY)
+    // -----------------------------
+    // 10 Mercería products
+    // -----------------------------
     const haberdasheryProducts = [
         {
             name: 'Botones de madera',
             slug: 'botones-de-madera',
             description: 'Botones de madera natural, perfectos para proyectos de costura y manualidades.',
             basePrice: 3.5,
-            type: ProductType.HABERDASHERY,
+            type: ProductType.MERCERIA,
             categorySlug: 'merceria',
             allowedSizeTypes: [],
         },
         {
             name: 'Hilo de coser blanco',
-            slug: 'hilo-coser-blanco',
+            slug: 'hilo-de-coser-blanco',
             description: 'Hilo resistente de poliéster, ideal para costura a máquina o a mano.',
             basePrice: 1.99,
-            type: ProductType.HABERDASHERY,
+            type: ProductType.MERCERIA,
             categorySlug: 'merceria',
             allowedSizeTypes: [],
         },
         {
             name: 'Cremallera metálica',
             slug: 'cremallera-metalica',
-            description: 'Cremallera en color gris plata, de 20 cm de longitud.',
-            basePrice: 2.2,
-            type: ProductType.HABERDASHERY,
+            description: 'Cremallera en metal para proyectos de costura, duradera y confiable.',
+            basePrice: 2.5,
+            type: ProductType.MERCERIA,
             categorySlug: 'merceria',
             allowedSizeTypes: [],
         },
         {
             name: 'Encaje delicado',
             slug: 'encaje-delicado',
-            description: 'Encaje decorativo para detalles finos en prendas o manualidades.',
-            basePrice: 3.75,
-            type: ProductType.HABERDASHERY,
+            description: 'Encaje decorativo de alta calidad para detalles finos en prendas.',
+            basePrice: 4.0,
+            type: ProductType.MERCERIA,
             categorySlug: 'merceria',
             allowedSizeTypes: [],
         },
         {
             name: 'Cinta elástica',
             slug: 'cinta-elastica',
-            description: 'Cinta elástica de 1 cm de ancho para ropa deportiva o arreglos de confección.',
-            basePrice: 2.5,
-            type: ProductType.HABERDASHERY,
+            description: 'Cinta elástica resistente para ajustes precisos en confecciones.',
+            basePrice: 2.2,
+            type: ProductType.MERCERIA,
             categorySlug: 'merceria',
             allowedSizeTypes: [],
         },
         {
             name: 'Botones de nácar',
-            slug: 'botones-nacar',
-            description: 'Botones brillantes de nácar para camisas elegantes o blusas.',
-            basePrice: 4.5,
-            type: ProductType.HABERDASHERY,
+            slug: 'botones-de-nacar',
+            description: 'Botones elegantes de nácar, ideales para prendas de vestir refinadas.',
+            basePrice: 3.0,
+            type: ProductType.MERCERIA,
             categorySlug: 'merceria',
             allowedSizeTypes: [],
         },
         {
             name: 'Hilo de bordar multicolor',
-            slug: 'hilo-bordar-multicolor',
-            description: 'Hilo suave en varios colores para bordados decorativos.',
-            basePrice: 2.99,
-            type: ProductType.HABERDASHERY,
+            slug: 'hilo-de-bordar-multicolor',
+            description: 'Hilo vibrante y duradero, perfecto para bordados decorativos.',
+            basePrice: 2.8,
+            type: ProductType.MERCERIA,
             categorySlug: 'merceria',
             allowedSizeTypes: [],
         },
         {
             name: 'Cremallera invisible',
             slug: 'cremallera-invisible',
-            description: 'Cremallera oculta para faldas o vestidos, 25 cm de longitud.',
+            description: 'Cremallera diseñada para un acabado discreto en prendas elegantes.',
             basePrice: 2.9,
-            type: ProductType.HABERDASHERY,
+            type: ProductType.MERCERIA,
+            categorySlug: 'merceria',
+            allowedSizeTypes: [],
+        },
+        {
+            name: 'Agujas de coser',
+            slug: 'agujas-de-coser',
+            description: 'Agujas finas y afiladas para costuras precisas en tejidos delicados.',
+            basePrice: 1.5,
+            type: ProductType.MERCERIA,
+            categorySlug: 'merceria',
+            allowedSizeTypes: [],
+        },
+        {
+            name: 'Tijeras de sastre',
+            slug: 'tijeras-de-sastre',
+            description: 'Tijeras profesionales de sastre para cortes precisos y limpios.',
+            basePrice: 8.0,
+            type: ProductType.MERCERIA,
             categorySlug: 'merceria',
             allowedSizeTypes: [],
         },
     ]
 
-    // ROPA (CLOTHING)
+    // -----------------------------
+    // 10 Ropa products
+    // -----------------------------
     const clothingProducts = [
         {
             name: 'Blusa de algodón',
             slug: 'blusa-de-algodon',
-            description: 'Blusa fresca y cómoda, ideal para primavera y verano.',
+            description: 'Blusa fresca y cómoda, ideal para climas cálidos.',
             basePrice: 17.99,
-            type: ProductType.CLOTHING,
+            type: ProductType.ROPA,
             categorySlug: 'ropa',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Blusa floreada',
             slug: 'blusa-floreada',
-            description: 'Blusa con estampado floral colorido para un look veraniego.',
+            description: 'Blusa con estampado floral vibrante para un look veraniego.',
             basePrice: 19.99,
-            type: ProductType.CLOTHING,
+            type: ProductType.ROPA,
             categorySlug: 'ropa',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Bata unisex',
             slug: 'bata-unisex',
-            description: 'Bata ligera para casa o trabajo, muy versátil.',
+            description: 'Bata ligera y versátil, perfecta para estar en casa o en el trabajo.',
             basePrice: 25.5,
-            type: ProductType.CLOTHING,
+            type: ProductType.ROPA,
             categorySlug: 'ropa',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Calcetines de algodón',
             slug: 'calcetines-de-algodon',
             description: 'Calcetines suaves y transpirables para uso diario.',
             basePrice: 4.99,
-            type: ProductType.CLOTHING,
+            type: ProductType.ROPA,
             categorySlug: 'ropa',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Blusa manga larga',
             slug: 'blusa-manga-larga',
-            description: 'Blusa cómoda de manga larga, ideal para días más frescos.',
+            description: 'Blusa elegante y cómoda para días frescos.',
             basePrice: 18.9,
-            type: ProductType.CLOTHING,
+            type: ProductType.ROPA,
             categorySlug: 'ropa',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Bata sanitaria',
             slug: 'bata-sanitaria',
-            description: 'Bata de uso médico o estético, de algodón transpirable.',
+            description: 'Bata de algodón transpirable, ideal para entornos médicos.',
             basePrice: 22.0,
-            type: ProductType.CLOTHING,
+            type: ProductType.ROPA,
             categorySlug: 'ropa',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Calcetines térmicos',
             slug: 'calcetines-termicos',
-            description: 'Calcetines cálidos para invierno.',
+            description: 'Calcetines cálidos, ideales para mantener los pies calientes en invierno.',
             basePrice: 6.5,
-            type: ProductType.CLOTHING,
+            type: ProductType.ROPA,
             categorySlug: 'ropa',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Blusa elegante',
             slug: 'blusa-elegante',
-            description: 'Blusa con detalles bordados, perfecta para eventos formales.',
+            description: 'Blusa con detalles refinados, perfecta para ocasiones especiales.',
             basePrice: 29.99,
-            type: ProductType.CLOTHING,
+            type: ProductType.ROPA,
             categorySlug: 'ropa',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
+        },
+        {
+            name: 'Vestido veraniego',
+            slug: 'vestido-veraniego',
+            description: 'Vestido fresco y ligero, ideal para el verano.',
+            basePrice: 34.99,
+            type: ProductType.ROPA,
+            categorySlug: 'ropa',
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
+        },
+        {
+            name: 'Camisa formal',
+            slug: 'camisa-formal',
+            description: 'Camisa de vestir elegante, perfecta para reuniones de negocio.',
+            basePrice: 39.99,
+            type: ProductType.ROPA,
+            categorySlug: 'ropa',
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
     ]
 
-    // ROPA INTERIOR (UNDERWEAR)
+    // -----------------------------
+    // 5 Ropa Interior products
+    // -----------------------------
     const underwearProducts = [
         {
             name: 'Calzoncillos de algodón',
             slug: 'calzoncillos-de-algodon',
-            description: 'Calzoncillos suaves y transpirables para uso diario.',
+            description: 'Calzoncillos cómodos y transpirables para el día a día.',
             basePrice: 9.99,
-            type: ProductType.UNDERWEAR,
+            type: ProductType.ROPA_INTERIOR,
             categorySlug: 'ropa-interior',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA_INTERIOR],
         },
         {
             name: 'Bragas de encaje',
-            slug: 'bragas-encaje',
-            description: 'Bragas femeninas con un toque elegante de encaje.',
+            slug: 'bragas-de-encaje',
+            description: 'Bragas elegantes con detalles de encaje.',
             basePrice: 12.5,
-            type: ProductType.UNDERWEAR,
+            type: ProductType.ROPA_INTERIOR,
             categorySlug: 'ropa-interior',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA_INTERIOR],
         },
         {
             name: 'Bóxer estampado',
             slug: 'boxer-estampado',
-            description: 'Bóxer masculino con diseño divertido.',
+            description: 'Bóxer masculino con estampados modernos.',
             basePrice: 10.99,
-            type: ProductType.UNDERWEAR,
+            type: ProductType.ROPA_INTERIOR,
             categorySlug: 'ropa-interior',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA_INTERIOR],
         },
         {
             name: 'Camiseta interior',
             slug: 'camiseta-interior',
-            description: 'Camiseta interior ligera para uso diario.',
+            description: 'Camiseta interior suave para usar debajo de cualquier prenda.',
             basePrice: 8.99,
-            type: ProductType.UNDERWEAR,
+            type: ProductType.ROPA_INTERIOR,
             categorySlug: 'ropa-interior',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA_INTERIOR],
         },
         {
             name: 'Sujetador sin aros',
             slug: 'sujetador-sin-aros',
-            description: 'Sujetador cómodo, ideal para uso diario o descanso.',
+            description: 'Sujetador cómodo y sin aros, ideal para uso diario.',
             basePrice: 14.99,
-            type: ProductType.UNDERWEAR,
+            type: ProductType.ROPA_INTERIOR,
             categorySlug: 'ropa-interior',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
-        },
-        {
-            name: 'Calzoncillos tipo slip',
-            slug: 'calzoncillos-slip',
-            description: 'Slip ajustado, con buena transpiración.',
-            basePrice: 7.99,
-            type: ProductType.UNDERWEAR,
-            categorySlug: 'ropa-interior',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
-        },
-        {
-            name: 'Bragas hipster',
-            slug: 'bragas-hipster',
-            description: 'Bragas de tiro medio para mayor comodidad.',
-            basePrice: 11.5,
-            type: ProductType.UNDERWEAR,
-            categorySlug: 'ropa-interior',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA_INTERIOR],
         },
     ]
 
-    // PIJAMAS (HOMEWEAR)
+    // -----------------------------
+    // 5 Pijamas products
+    // -----------------------------
     const homewearProducts = [
         {
             name: 'Pijama infantil con estampado',
             slug: 'pijama-infantil-estampado',
-            description: 'Pijama suave y colorido para los más pequeños de la casa.',
+            description: 'Pijama suave y colorido para niños.',
             basePrice: 14.99,
-            type: ProductType.HOMEWEAR,
+            type: ProductType.PIJAMAS,
             categorySlug: 'pijamas',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Pijama de mujer con encaje',
             slug: 'pijama-mujer-encaje',
             description: 'Pijama elegante para mujer con detalles de encaje.',
             basePrice: 24.99,
-            type: ProductType.HOMEWEAR,
+            type: ProductType.PIJAMAS,
             categorySlug: 'pijamas',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Pijama de hombre de franela',
             slug: 'pijama-hombre-franela',
-            description: 'Pijama cálido y confortable para invierno.',
+            description: 'Pijama cálido de franela para hombres en invierno.',
             basePrice: 27.99,
-            type: ProductType.HOMEWEAR,
+            type: ProductType.PIJAMAS,
             categorySlug: 'pijamas',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Bata polar unisex',
             slug: 'bata-polar-unisex',
-            description: 'Bata de tejido polar muy abrigada para las noches frías.',
+            description: 'Bata de tejido polar, perfecta para noches frías.',
             basePrice: 19.99,
-            type: ProductType.HOMEWEAR,
+            type: ProductType.PIJAMAS,
             categorySlug: 'pijamas',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
-        },
-        {
-            name: 'Pijama infantil animalitos',
-            slug: 'pijama-infantil-animalitos',
-            description: 'Pijama para niños con estampados divertidos de animales.',
-            basePrice: 15.49,
-            type: ProductType.HOMEWEAR,
-            categorySlug: 'pijamas',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
         {
             name: 'Pijama de mujer algodón',
             slug: 'pijama-mujer-algodon',
-            description: 'Pijama ligero y cómodo, perfecto para verano.',
+            description: 'Pijama ligero y cómodo, ideal para el verano.',
             basePrice: 21.99,
-            type: ProductType.HOMEWEAR,
+            type: ProductType.PIJAMAS,
             categorySlug: 'pijamas',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
-        },
-        {
-            name: 'Pijama de hombre rayas',
-            slug: 'pijama-hombre-rayas',
-            description: 'Pijama con diseño clásico a rayas, muy suave al tacto.',
-            basePrice: 23.99,
-            type: ProductType.HOMEWEAR,
-            categorySlug: 'pijamas',
-            allowedSizeTypes: [SizeType.CLOTHING_SIZES],
+            allowedSizeTypes: [SizeType.TALLAS_ROPA],
         },
     ]
 
-    // Agrupamos todos los productos en un solo array
+    // Combine all product arrays into one
     const allProducts = [
         ...haberdasheryProducts,
         ...clothingProducts,
@@ -355,7 +370,6 @@ async function createAllProducts(sizes: any[], categories: any[]) {
         ...homewearProducts,
     ]
 
-    // Creamos/actualizamos cada producto
     for (const productData of allProducts) {
         await createProduct(productData, sizes, categories)
     }
@@ -375,19 +389,48 @@ async function createProduct(
     categories: any[]
 ) {
     const suffix = uniqueSuffix()
-
-    // Generamos un nombre y slug únicos para evitar colisiones
     const uniqueName = `${productData.name} - ${suffix}`
     const uniqueSlug = `${productData.slug}-${suffix}`
 
-    // Buscamos la categoría
+    // Find the category by its slug
     const category = categories.find((c) => c.slug === productData.categorySlug)
     if (!category) {
-        console.error(`❌ Category '${productData.categorySlug}' not found. Skipping product "${productData.name}".`)
+        console.error(`❌ Category '${productData.categorySlug}' not found. Skipping "${productData.name}".`)
         return
     }
 
-    // Creamos (o actualizamos) el producto
+    // We will shuffle the set of colors so each product can have a unique order of colors:
+    const availableColors = ['Rojo', 'Azul', 'Negro', 'Blanco']
+    const shuffledColors = shuffle(availableColors)
+
+    // Build the "variants" creation array depending on whether the product uses sizes or not
+    let variantsData: Prisma.ProductVariantCreateWithoutProductInput[] = []
+
+    // If product has clothing or underwear sizes:
+    if (
+        productData.allowedSizeTypes.includes(SizeType.TALLAS_ROPA) ||
+        productData.allowedSizeTypes.includes(SizeType.TALLAS_ROPA_INTERIOR)
+    ) {
+        // Each size gets a different color from the shuffled list (cycling if more sizes than colors)
+        variantsData = sizes.map((size, idx) => ({
+            size: { connect: { value: size.value } },
+            color: { connect: { name: shuffledColors[idx % shuffledColors.length] } },
+            stock: 50,
+            price: productData.basePrice,
+            sku: `SKU-${size.value}-${uniqueSuffix()}`,
+        }))
+    } else {
+        // No sizes, just one variant with a unique color
+        variantsData = [
+            {
+                stock: 100,
+                price: productData.basePrice,
+                sku: `SKU-UNIQUE-${uniqueSuffix()}`,
+                color: { connect: { name: shuffledColors[0] } }, // pick first color
+            },
+        ]
+    }
+
     await prisma.product.upsert({
         where: { name: uniqueName },
         update: { updatedAt: new Date() },
@@ -399,29 +442,10 @@ async function createProduct(
             slug: uniqueSlug,
             allowedSizeTypes: productData.allowedSizeTypes,
             images: {
-                create: createImages(3),
+                create: createImages(productData.name, 3),
             },
-            // Creamos variantes según si usa tallas o no
             variants: {
-                create:
-                    productData.allowedSizeTypes.includes(SizeType.CLOTHING_SIZES)
-                        ? // Si el producto requiere tallas (ropa, ropa interior, pijamas, etc.)
-                        sizes.map((size) => ({
-                            size: { connect: { value: size.value } },
-                            color: { connect: { name: randomColor() } },
-                            stock: 50,
-                            price: productData.basePrice,
-                            sku: `SKU-${size.value}-${uniqueSuffix()}`,
-                        }))
-                        : // Si es de mercería (sin tallas)
-                        [
-                            {
-                                stock: 100,
-                                price: productData.basePrice,
-                                sku: `SKU-UNIQUE-${uniqueSuffix()}`,
-                                color: { connect: { name: randomColor() } },
-                            },
-                        ],
+                create: variantsData,
             },
             categories: {
                 create: [{ category: { connect: { id: category.id } } }],
@@ -429,10 +453,6 @@ async function createProduct(
         },
     })
 }
-
-// ==================================================================
-// Resto de funciones auxiliares
-// ==================================================================
 
 async function createUsers() {
     const userData: Prisma.UserCreateManyInput[] = [
@@ -446,7 +466,6 @@ async function createUsers() {
         { name: 'María López', email: 'maria@example.com', password: 'Test1234', emailVerified: new Date() },
         { name: 'Laura García', email: 'laura@example.com', password: 'Test1234', emailVerified: new Date() },
     ]
-
     await prisma.user.createMany({ data: userData, skipDuplicates: true })
     return prisma.user.findMany()
 }
@@ -458,19 +477,22 @@ async function createCategories() {
         { name: 'Ropa Interior', slug: 'ropa-interior', description: 'Ropa interior masculina y femenina' },
         { name: 'Pijamas', slug: 'pijamas', description: 'Pijamas y ropa de dormir' },
     ]
-
     await prisma.category.createMany({ data: categoriesData, skipDuplicates: true })
     return prisma.category.findMany()
 }
 
 async function createSizes() {
     const sizesData: Prisma.SizeCreateManyInput[] = [
-        { value: 'S', type: 'CLOTHING_SIZES' },
-        { value: 'M', type: 'CLOTHING_SIZES' },
-        { value: 'L', type: 'CLOTHING_SIZES' },
-        { value: 'XL', type: 'CLOTHING_SIZES' },
+        // TALLAS_ROPA
+        { value: 'S', type: 'TALLAS_ROPA' },
+        { value: 'M', type: 'TALLAS_ROPA' },
+        { value: 'L', type: 'TALLAS_ROPA' },
+        { value: 'XL', type: 'TALLAS_ROPA' },
+        // You could also add TALLAS_ROPA_INTERIOR here if you want:
+        // { value: 'S', type: 'TALLAS_ROPA_INTERIOR' },
+        // { value: 'M', type: 'TALLAS_ROPA_INTERIOR' },
+        // ...
     ]
-
     await prisma.size.createMany({ data: sizesData, skipDuplicates: true })
     return prisma.size.findMany()
 }
@@ -482,12 +504,11 @@ async function createColors() {
         { name: 'Negro', hexCode: '#000000' },
         { name: 'Blanco', hexCode: '#FFFFFF' },
     ]
-
     await prisma.color.createMany({ data: colorsData, skipDuplicates: true })
     return prisma.color.findMany()
 }
 
-async function createTestimonialsAndReviews(users: any[]) {
+async function createTestimonials(users: any[]) {
     const testimonialData: Prisma.TestimonialCreateManyInput[] = [
         { userId: users[0].id, content: 'Es una tienda fantástica', rating: 5, approved: true },
         { userId: users[1].id, content: 'La calidad es increíble', rating: 4, approved: true },
@@ -495,29 +516,61 @@ async function createTestimonialsAndReviews(users: any[]) {
         { userId: users[3].id, content: 'Buenos precios y envíos rápidos', rating: 4, approved: true },
         { userId: users[4].id, content: 'Excelente atención al cliente', rating: 5, approved: true },
     ]
-
     await prisma.testimonial.createMany({ data: testimonialData, skipDuplicates: true })
 }
 
-function createImages(count: number) {
+function createImages(productName: string, count: number) {
     return Array(count)
         .fill(null)
         .map((_, i) => ({
-            url: `https://picsum.photos/seed/${Date.now()}-${i}/600/600`,
-            altText: `Imagen ${i + 1}`,
+            url: `https://picsum.photos/seed/${encodeURIComponent(productName)}-${i}/600/600`,
+            altText: `${productName} image ${i + 1}`,
             order: i + 1,
         }))
 }
 
-function randomColor() {
-    const colors = ['Rojo', 'Azul', 'Negro', 'Blanco']
-    return colors[Math.floor(Math.random() * colors.length)]
+async function createProductReviewsForEveryProduct() {
+    const products = await prisma.product.findMany()
+    const users = await prisma.user.findMany()
+
+    // For each product, assign between 2 and 5 reviews from unique users
+    for (const product of products) {
+        const reviewCount = Math.min(Math.floor(Math.random() * 4) + 2, users.length)
+        const shuffledUsers = [...users].sort(() => Math.random() - 0.5)
+        const selectedUsers = shuffledUsers.slice(0, reviewCount)
+
+        const reviews = selectedUsers.map((user) => ({
+            productId: product.id,
+            userId: user.id,
+            rating: Math.floor(Math.random() * 4) + 2, // Rating between 2 and 5
+            comment: randomReviewContent(),
+            createdAt: new Date(),
+        }))
+
+        await prisma.productReview.createMany({
+            data: reviews,
+            skipDuplicates: true,
+        })
+    }
 }
 
-// Ejecuta main() y gestiona errores
+function randomReviewContent() {
+    const possibleReviews = [
+        "¡Gran producto, lo disfruté mucho!",
+        "La calidad es decente por el precio.",
+        "No está mal, podría mejorar en algunos aspectos.",
+        "¡Superó mis expectativas!",
+        "Lo recomendaría a mis amigos.",
+        "Muy satisfecho con mi compra.",
+        "Podría ser mejor, pero está bien en general.",
+    ]
+    return possibleReviews[Math.floor(Math.random() * possibleReviews.length)]
+}
+
+// Execute the seed script
 main()
     .catch((e) => {
-        console.error('❌ Seed error:', e)
+        console.error("❌ Seed error:", e)
         process.exit(1)
     })
     .finally(async () => {

@@ -10,7 +10,7 @@ import {
 export default auth(async (req) => {
     const { nextUrl } = req;
     const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-    const isPublicRoute = publicRoutes.includes(nextUrl.pathname) || nextUrl.pathname.startsWith('/admin');
+    const isPublicRoute = publicRoutes.includes(nextUrl.pathname) || nextUrl.pathname.startsWith('/admin') || nextUrl.pathname.startsWith('/product/');
     const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
     // Retrieve the token from the request

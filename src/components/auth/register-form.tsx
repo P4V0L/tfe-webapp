@@ -39,8 +39,6 @@ export const RegisterForm = () => {
         setError("");
         setSuccess("");
 
-        console.log('Registering user', values)
-
         startTransition(() => {
             register(values)
                 .then((data) => {
@@ -53,8 +51,8 @@ export const RegisterForm = () => {
 
     return (
         <CardWrapper
-            headerLabel="Create an account"
-            backButtonLabel="Already have an account?"
+            headerLabel="Crear una nueva cuenta"
+            backButtonLabel="Ya tienes una cuenta?"
             backButtonHref="/auth/login"
         >
             <Form {...form}>
@@ -68,12 +66,12 @@ export const RegisterForm = () => {
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Name</FormLabel>
+                                    <FormLabel>Nombre</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             disabled={isPending}
-                                            placeholder="John Doe"
+                                            placeholder="Nombre Apellido"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -85,12 +83,12 @@ export const RegisterForm = () => {
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Username</FormLabel>
+                                    <FormLabel>Email</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             disabled={isPending}
-                                            placeholder="john.doe@example.com"
+                                            placeholder="email@ejemplo.com"
                                             type="email"
                                         />
                                     </FormControl>
@@ -103,7 +101,7 @@ export const RegisterForm = () => {
                             name="password"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Password</FormLabel>
+                                    <FormLabel>Contraseña</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
@@ -124,7 +122,7 @@ export const RegisterForm = () => {
                         type="submit"
                         className="w-full"
                     >
-                        Create an account
+                        Registrate
                     </Button>
                 </form>
             </Form>
