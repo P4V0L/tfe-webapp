@@ -11,7 +11,7 @@ export function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Column 1 */}
                     <div className="flex flex-col items-center text-center justify-center">
-                        <h3 className="text-xl font-serif font-bold mb-4">CONCHI GIMENO</h3>
+                        <h3 className="text-3xl font-serif font-bold mb-2">CONCHI GIMENO</h3>
                         <p className="mb-4 text-secondary-foreground">Tu tienda de siempre, ahora sin moverte de casa.</p>
                     </div>
 

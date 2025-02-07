@@ -1,12 +1,12 @@
 "use client";  // <--- add this
 
 import { Card, CardContent } from "@/components/ui/card";
-import { TopProduct } from "@/models/product";
+import {FullProduct} from "@/models/product";
 import Image from "next/image";
 import Link from "next/link";
 
 interface ProductoDestacadoProps {
-    product: TopProduct;
+    product: FullProduct;
 }
 
 export default function ProductoDestacado({ product }: ProductoDestacadoProps) {
@@ -14,12 +14,14 @@ export default function ProductoDestacado({ product }: ProductoDestacadoProps) {
         return null;
     }
 
+    const colors = product.variants.map((variant) => variant.color).filter((color) => Boolean(color));
+
     return (
         <Link href={`/product/${product.slug}`}>
         <Card key={product.id} className="overflow-hidden">
             <CardContent className="p-0">
                 <Image
-                    src={product.images?.[0] || "/placeholder.svg"}
+                    src={product.images[0].url || "/placeholder.svg"}
                     alt={product.name}
                     className="w-full h-64 object-cover"
                     width={500}
@@ -36,18 +38,18 @@ export default function ProductoDestacado({ product }: ProductoDestacadoProps) {
                                 key={index}
                                 className="text-sm text-muted bg-accent py-1 px-2 rounded-xl"
                             >
-                                {category}
+                                {category.category.name}
                             </span>
                         ))}
                     </div>
                     <div className="flex items-center mt-2">
-                        {product.colors && (
-                            product.colors.map((color) => (
+                        {colors && (
+                            colors.map((color) => (
                                 <div
-                                    key={color.id}
+                                    key={color?.id}
                                     className="w-4 h-4 rounded-full"
                                     style={{
-                                        backgroundColor: color.hexCode,
+                                        backgroundColor: color?.hexCode,
                                     }}
                                 />
                             ))

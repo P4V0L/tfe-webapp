@@ -7,7 +7,7 @@ import {useEffect, useState } from "react";
 import { TestimonialUser } from "@/models/testimonials";
 import {getCategories, getTestimonials, getTopProducts} from "@/actions/data/db";
 import { Category } from "@prisma/client";
-import {TopProduct} from "@/models/product";
+import {FullProduct} from "@/models/product";
 import ProductoDestacado from "@/components/landing/ProductoDestacado";
 
 const heroInfo = {
@@ -20,7 +20,7 @@ const heroInfo = {
 export default function Home() {
     const [testimonials, setTestimonials] = useState<TestimonialUser[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
-    const [productosDestacados, setProductosDestacados] = useState<TopProduct[]>([]);
+    const [productosDestacados, setProductosDestacados] = useState<FullProduct[]>([]);
 
     useEffect(() => {
         getTestimonials().then((res) => {

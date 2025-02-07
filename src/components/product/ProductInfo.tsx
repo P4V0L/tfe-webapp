@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Heart, Minus, Plus, ShoppingCart } from "lucide-react"
+import { Minus, Plus, ShoppingCart } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import {ColorType, FullProduct} from "@/models/product";
 
 interface ProductInfoProps {
-    product: any
+    product: FullProduct;
 }
 
 export function ProductInfo({ product }: ProductInfoProps) {
@@ -19,8 +20,16 @@ export function ProductInfo({ product }: ProductInfoProps) {
     const [selectedSize, setSelectedSize] = useState<string | null>(null)
     const [quantity, setQuantity] = useState(1)
 
-    const colors = Array.from(new Set(product.variants.map((v: any) => v.color).filter(Boolean)))
-    const sizes = Array.from(new Set(product.variants.map((v: any) => v.size).filter(Boolean)))
+    const colors: ColorType[] = Array.from(
+        new Set(
+            product.variants
+                .map((v) => v.color)
+                .filter((color): color is ColorType => Boolean(color))
+        )
+    );
+
+    const sizes = product.variants.map((variant => variant.size))
+
 
     const incrementQuantity = () => setQuantity((prev) => prev + 1)
     const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1))
@@ -31,7 +40,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">{product.name.split('-')[0]}</h1>
                 <div className="flex items-center gap-4 mt-2">
                     <span className="text-2xl font-bold text-primary">€{product.basePrice?.toFixed(2)}</span>
-                    {product.type && <Badge variant="destructive">{product.type}</Badge>}
+                    {product.type && <Badge variant="destructive">{product.type.replace('_', ' ')}</Badge>}
                 </div>
             </div>
 
@@ -41,35 +50,39 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 <div>
                     <Label className="text-base text-foreground">Color</Label>
                     <RadioGroup value={selectedColor || ""} onValueChange={setSelectedColor} className="flex gap-2 mt-3">
-                        {colors.map((color: any) => (
-                            <div key={color?.name} className="flex flex-col items-center gap-1.5">
-                                <RadioGroupItem value={color?.name || ""} id={`color-${color?.name}`} className="peer sr-only" />
+                        {colors.map((color) => (
+                            <div key={color.name} className="flex flex-col items-center gap-1.5">
+                                <RadioGroupItem value={color.name} id={`color-${color.name}`} className="peer sr-only" />
                                 <Label
-                                    htmlFor={`color-${color?.name}`}
+                                    htmlFor={`color-${color.name}`}
                                     className="h-8 w-8 rounded-full border peer-data-[state=checked]:ring-2 ring-primary cursor-pointer"
-                                    style={{ backgroundColor: color?.hexCode }}
+                                    style={{ backgroundColor: color.hexCode }}
                                 />
-                                <span className="text-xs text-secondary-foreground">{color?.name}</span>
+                                <span className="text-xs text-secondary-foreground">{color.name}</span>
                             </div>
                         ))}
                     </RadioGroup>
                 </div>
 
                 <div>
-                    <Label className="text-base text-foreground">Talla</Label>
-                    <RadioGroup value={selectedSize || ""} onValueChange={setSelectedSize} className="flex flex-wrap gap-2 mt-3">
-                        {sizes.reverse().map((size: any) => (
-                            <div key={size?.value}>
-                                <RadioGroupItem value={size?.value || ""} id={`size-${size?.value}`} className="peer sr-only" />
-                                <Label
-                                    htmlFor={`size-${size?.value}`}
-                                    className="px-4 py-2 border rounded-md peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/60 cursor-pointer hover:bg-secondary text-foreground"
-                                >
-                                    {size?.value}
-                                </Label>
-                            </div>
-                        ))}
-                    </RadioGroup>
+                    {sizes.length > 0 &&
+                        <div>
+                            <Label className="text-base text-foreground">Talla</Label>
+                            <RadioGroup value={selectedSize || ""} onValueChange={setSelectedSize} className="flex flex-wrap gap-2 mt-3">
+                                {sizes.reverse().map((size) => (
+                                    <div key={size?.value}>
+                                        <RadioGroupItem value={size?.value || ""} id={`size-${size?.value}`} className="peer sr-only" />
+                                        <Label
+                                            htmlFor={`size-${size?.value}`}
+                                            className="px-4 py-2 border rounded-md peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/60 cursor-pointer hover:bg-secondary text-foreground"
+                                        >
+                                            {size?.value}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </RadioGroup>
+                        </div>
+                    }
                 </div>
 
                 <div>
@@ -108,4 +121,3 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </div>
     )
 }
-

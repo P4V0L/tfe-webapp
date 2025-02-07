@@ -8,16 +8,19 @@ import { Separator } from "@/components/ui/separator"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 
 interface ProductReviewsProps {
-    reviews: {
-        id: string;
-        rating: number;
-        comment: string;
+    reviews: ({
         user: {
-            id: string;
-            name: string;
             image: string | null;
+            name: string | null;
         };
-    }[]
+    } & {
+        id: string;
+        createdAt: Date;
+        userId: string;
+        rating: number;
+        productId: string;
+        comment: string | null;
+    })[];
 }
 
 export function ProductReviews({ reviews }: ProductReviewsProps) {

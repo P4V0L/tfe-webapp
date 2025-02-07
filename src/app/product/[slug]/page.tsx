@@ -5,17 +5,19 @@ import { ProductReviews } from "@/components/product/ProductReviews"
 import {getProductBySlug} from "@/actions/data/db";
 
 interface PageProps {
-    params: {
-        slug: string
-    }
+    params: Promise<{ slug: string }>
 }
 
-export default async function ProductPage({ params }: PageProps) {
-    const product = await getProductBySlug(params.slug)
+export default async function ProductPage({
+    params,
+}: PageProps ) {
+    const product = await getProductBySlug((await params).slug)
 
     if (!product) {
         notFound()
     }
+
+    console.log(product)
 
     return (
         <div className="container px-4 py-8 ">
