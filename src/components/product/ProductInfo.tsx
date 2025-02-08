@@ -30,7 +30,6 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
     const sizes = product.variants.map((variant => variant.size))
 
-
     const incrementQuantity = () => setQuantity((prev) => prev + 1)
     const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1))
 
@@ -65,7 +64,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 </div>
 
                 <div>
-                    {sizes.length > 0 &&
+                    {!(sizes.length === 1 && sizes[0] === null) &&
                         <div>
                             <Label className="text-base text-foreground">Talla</Label>
                             <RadioGroup value={selectedSize || ""} onValueChange={setSelectedSize} className="flex flex-wrap gap-2 mt-3">

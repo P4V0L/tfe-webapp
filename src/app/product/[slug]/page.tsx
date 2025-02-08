@@ -17,8 +17,6 @@ export default async function ProductPage({
         notFound()
     }
 
-    console.log(product)
-
     return (
         <div className="container px-4 py-8 ">
             <div className="grid lg:grid-cols-2 gap-8">

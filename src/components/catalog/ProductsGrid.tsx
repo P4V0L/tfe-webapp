@@ -5,8 +5,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { useProducts } from "./ProductsContext"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useSearchParams } from "next/navigation"
 
 interface ExtendedProduct extends Product {
     images: ProductImage[]
@@ -27,35 +25,9 @@ interface ProductGridProps {
 
 export function ProductGrid({ products, pagination }: ProductGridProps) {
     const { updateFilters } = useProducts()
-    const searchParams = useSearchParams()
-
 
     return (
         <div className="space-y-6">
-            <div className="flex items-end justify-end ">
-                <div>
-                    <p className="text-sm text-secondary-foreground mb-0.5">Ordenar por</p>
-                    <Select
-                        value={(searchParams.get("sort") as "newest" | "price-asc" | "price-desc") || "newest"}
-                        onValueChange={(value: string) => {
-                            if (value === "newest" || value === "price-asc" || value === "price-desc") {
-                                updateFilters({ sort: value })
-                            }
-                        }}
-                    >
-                        <SelectTrigger className="w-fit bg-primary text-primary-foreground">
-                            <SelectValue placeholder="Ordenar por" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="newest">Más recientes</SelectItem>
-                            <SelectItem value="price-asc">Precio: menor a mayor</SelectItem>
-                            <SelectItem value="price-desc">Precio: mayor a menor</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {products.map((product) => (
                     <div key={product.id} className="group relative">

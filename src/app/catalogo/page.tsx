@@ -1,8 +1,8 @@
 import { Suspense } from "react"
 import { db as prisma } from "@/lib/db"
 import { ProductsProvider } from "@/components/catalog/ProductsContext"
-import { FilterSidebar } from "@/components/catalog/FilterSidebar"
 import { ProductGrid } from "@/components/catalog/ProductsGrid"
+import {FilterSheet} from "@/components/catalog/FilterSheet";
 
 interface CatalogPageProps {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -148,11 +148,9 @@ async function CatalogContent({ searchParams }: CatalogPageProps) {
     return (
         <ProductsProvider initialSearchParams={resolvedSearchParams}>
             <div className="container px-4 py-8">
-                <div className="lg:grid lg:grid-cols-[280px_1fr] gap-8">
-                    <FilterSidebar categories={categories} colors={colors} />
-                    <div className="space-y-8">
-                        <ProductGrid products={products} pagination={pagination} />
-                    </div>
+                <div className="space-y-8">
+                    <FilterSheet categories={categories} colors={colors} />
+                    <ProductGrid products={products} pagination={pagination} />
                 </div>
             </div>
         </ProductsProvider>

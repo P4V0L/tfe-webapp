@@ -18,7 +18,7 @@ interface FilterSidebarProps {
 }
 
 export function FilterSidebar({ categories, colors }: FilterSidebarProps) {
-    const { searchParams, updateFilters, isMobileFiltersOpen, toggleMobileFilters } = useProducts()
+    const { searchParams, updateFilters } = useProducts()
     const [expandedCategories, setExpandedCategories] = useState<string[]>([])
 
     const toggleCategory = (categoryId: string) => {
@@ -60,16 +60,9 @@ export function FilterSidebar({ categories, colors }: FilterSidebarProps) {
 
     return (
         <div className="relative bg-secondary-foreground p-6 text-primary-foreground rounded-xl h-fit">
-            <div className="lg:hidden flex items-center justify-between py-4">
-                <Button variant="outline" onClick={toggleMobileFilters} className="w-full bg-primary">
-                    Filtros
-                    {isMobileFiltersOpen ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
-                </Button>
-            </div>
-            <div className={cn("space-y-8", "lg:block", isMobileFiltersOpen ? "block" : "hidden")}>
+            <div className={cn("space-y-8", "lg:block")}>
                 <div className="flex justify-between items-center">
-                    <h1 className="font-bold mb-2">Filtros</h1>
-                    <Button variant="link" onClick={clearAllFilters} className="text-sm">
+                    <Button variant="default" onClick={clearAllFilters} className="text-sm">
                         Limpiar filtros
                     </Button>
                 </div>
@@ -251,4 +244,3 @@ export function FilterSidebar({ categories, colors }: FilterSidebarProps) {
         </div>
     )
 }
-

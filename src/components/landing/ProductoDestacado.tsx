@@ -19,17 +19,17 @@ export default function ProductoDestacado({ product }: ProductoDestacadoProps) {
     return (
         <Link href={`/product/${product.slug}`}>
         <Card key={product.id} className="overflow-hidden">
-            <CardContent className="p-0">
+            <CardContent className="p-0 bg-accent-foreground ">
                 <Image
                     src={product.images[0].url || "/placeholder.svg"}
                     alt={product.name}
-                    className="w-full h-64 object-cover"
+                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                     width={500}
                     height={300}
                 />
                 <div className="p-4">
-                    <h3 className="font-medium">{product.name.split('-')[0]}</h3>
-                    <p className="text-lg font-semibold text-primary">
+                    <h3 className="font-medium text-primary-foreground">{product.name.split('-')[0]}</h3>
+                    <p className="text-lg font-semibold text-primary-foreground">
                         {product.basePrice}€
                     </p>
                     <div className="mt-2">
