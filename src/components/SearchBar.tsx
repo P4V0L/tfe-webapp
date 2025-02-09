@@ -70,7 +70,7 @@ export function SearchBar() {
                         setIsExpanded(true)
                     }}
                     onClick={() => setIsExpanded(true)}
-                    className="w-full max-w-[20px] sm:max-w-none bg-gray-100 border-none focus-visible:ring-0 focus-visible:ring-offset-0 pr-8"                />
+                    className="w-full w-full bg-gray-100 border-none focus-visible:ring-0 focus-visible:ring-offset-0 pr-8"                />
                 {searchTerm ? (
                     <button
                         onClick={() => {
