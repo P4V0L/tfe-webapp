@@ -353,3 +353,77 @@ export async function toggleTestimonialApproval(id: string) {
         throw error;
     }
 }
+//
+// export async function getProductVariant(variantId: string) {
+//     try {
+//         return await prisma.productVariant.findUnique({
+//             where: {id: variantId},
+//             include: {
+//                 product: {
+//                     include: {
+//                         images: true,
+//                     },
+//                 },
+//                 size: true,
+//                 color: true,
+//             },
+//         })
+//     } catch (error) {
+//         console.error("Error fetching product variant:", error)
+//         return null
+//     }
+// }
+
+export async function getProductVariant(productId: string, sizeValue: string, colorName: string) {
+    try {
+        // Fetch Size ID
+        const size = await prisma.size.findUnique({
+            where: { value: sizeValue },
+            select: { id: true }
+        });
+
+        // Fetch Color ID
+        const color = await prisma.color.findUnique({
+            where: { name: colorName },
+            select: { id: true }
+        });
+
+        if (!size || !color) {
+            throw new Error("Size or Color not found");
+        }
+
+        // Fetch the Product Variant
+        return await prisma.productVariant.findFirst({
+            where: {
+                productId: productId,
+                sizeId: size.id,
+                colorId: color.id,
+            },
+            include: {
+                product: {
+                    include: {
+                        images: true,
+                    },
+                },
+                size: true,
+                color: true,
+            },
+        });
+
+    } catch (error) {
+        console.error("Error fetching product variant:", error);
+        return null;
+    }
+}
+
+export async function getColorByName(colorName: string) {
+    return await prisma.color.findUnique({
+        where: { name: colorName }
+    });
+}
+
+export async function getSizeByValue(sizeValue: string) {
+    return await prisma.size.findUnique({
+        where: { value: sizeValue }
+    });
+}

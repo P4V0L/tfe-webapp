@@ -5,7 +5,7 @@ import { SiFacebook, SiInstagram, SiX } from "@icons-pack/react-simple-icons"
 
 export function Footer() {
     return (
-        <footer className="bg-primary text-white mt-16">
+        <footer className="bg-primary text-white mt-10">
             <div className="container mx-auto px-4 py-12">
                 {/* Use a 1-column layout for mobile and a 3-column layout for md and above */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

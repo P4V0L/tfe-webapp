@@ -6,7 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 // 1. Import the built-in Google font modules
 import { Merriweather, Merriweather_Sans } from "next/font/google";
 import {SessionProvider} from "next-auth/react";
-import {CartProvider} from "@/providers/cart-provider";
+import {CartProvider} from "@/providers/CartProvider";
 
 // 2. Configure your fonts & weights
 const merriweather = Merriweather({

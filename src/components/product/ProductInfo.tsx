@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -9,114 +10,190 @@ import { Minus, Plus, ShoppingCart } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import {ColorType, FullProduct} from "@/models/product";
+import type { ColorType, FullProduct } from "@/models/product"
+import { useCart } from "@/providers/CartProvider"
+import { addToCartSchema, type AddToCartFormData } from "@/schemas/cart"
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 
 interface ProductInfoProps {
-    product: FullProduct;
+    product: FullProduct
 }
 
 export function ProductInfo({ product }: ProductInfoProps) {
-    const [selectedColor, setSelectedColor] = useState<string | null>(null)
-    const [selectedSize, setSelectedSize] = useState<string | null>(null)
-    const [quantity, setQuantity] = useState(1)
+    const { addToCart } = useCart()
+    // const [selectedVariant, setSelectedVariant] = useState(product.variants[0])
 
-    const colors: ColorType[] = Array.from(
+    const form = useForm<AddToCartFormData>({
+        resolver: zodResolver(addToCartSchema),
+        defaultValues: {
+            productId: product.id,
+            variantId: "",
+            quantity: 1,
+            color: product.variants[0].color?.name || "",
+            size: product.variants[0].size?.value || "",
+            price: product.basePrice || 0,
+            image: product.images[0].url,
+            productName: product.name,
+        },
+    })
+
+    const colors: ColorType[] = product.variants
+        .map((v) => v.color)
+        .filter((color): color is NonNullable<typeof color> => Boolean(color))
+        .filter((color, index, self) => index === self.findIndex((t) => t.id === color.id))
+
+    const sizes = Array.from(
         new Set(
-            product.variants
-                .map((v) => v.color)
-                .filter((color): color is ColorType => Boolean(color))
-        )
-    );
+            product.variants.map((variant) => variant.size).filter((size): size is NonNullable<typeof size> => Boolean(size)),
+        ),
+    ).reverse()
+    const hasSizes = sizes.length > 0
 
-    const sizes = product.variants.map((variant => variant.size))
+    // const updateVariant = (color: string, size: string) => {
+    //     const newVariant = product.variants.find((v) => v.color?.name === color && (!hasSizes || v.size?.value === size))
+    //     if (newVariant) {
+    //         setSelectedVariant(newVariant)
+    //         form.setValue("variantId", newVariant.id)
+    //     }
+    // }
 
-    const incrementQuantity = () => setQuantity((prev) => prev + 1)
-    const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1))
+    const onSubmit = (data: AddToCartFormData) => {
+        console.log(data)
+        addToCart({
+            ...data
+        })
+    }
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">{product.name.split('-')[0]}</h1>
-                <div className="flex items-center gap-4 mt-2">
-                    <span className="text-2xl font-bold text-primary">€{product.basePrice?.toFixed(2)}</span>
-                    {product.type && <Badge variant="destructive">{product.type.replace('_', ' ')}</Badge>}
-                </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-4">
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div>
-                    <Label className="text-base text-foreground">Color</Label>
-                    <RadioGroup value={selectedColor || ""} onValueChange={setSelectedColor} className="flex gap-2 mt-3">
-                        {colors.map((color) => (
-                            <div key={color.name} className="flex flex-col items-center gap-1.5">
-                                <RadioGroupItem value={color.name} id={`color-${color.name}`} className="peer sr-only" />
-                                <Label
-                                    htmlFor={`color-${color.name}`}
-                                    className="h-8 w-8 rounded-full border peer-data-[state=checked]:ring-2 ring-primary cursor-pointer"
-                                    style={{ backgroundColor: color.hexCode }}
-                                />
-                                <span className="text-xs text-secondary-foreground">{color.name}</span>
-                            </div>
-                        ))}
-                    </RadioGroup>
-                </div>
-
-                <div>
-                    {!(sizes.length === 1 && sizes[0] === null) &&
-                        <div>
-                            <Label className="text-base text-foreground">Talla</Label>
-                            <RadioGroup value={selectedSize || ""} onValueChange={setSelectedSize} className="flex flex-wrap gap-2 mt-3">
-                                {sizes.reverse().map((size) => (
-                                    <div key={size?.value}>
-                                        <RadioGroupItem value={size?.value || ""} id={`size-${size?.value}`} className="peer sr-only" />
-                                        <Label
-                                            htmlFor={`size-${size?.value}`}
-                                            className="px-4 py-2 border rounded-md peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/60 cursor-pointer hover:bg-secondary text-foreground"
-                                        >
-                                            {size?.value}
-                                        </Label>
-                                    </div>
-                                ))}
-                            </RadioGroup>
-                        </div>
-                    }
-                </div>
-
-                <div>
-                    <Label className="text-base text-foreground">Cantidad</Label>
-                    <div className="flex items-center gap-2 mt-3">
-                        <Button variant="outline" size="icon" onClick={decrementQuantity} disabled={quantity <= 1}>
-                            <Minus className="h-4 w-4" />
-                        </Button>
-                        <Input
-                            type="number"
-                            min="1"
-                            value={quantity}
-                            onChange={(e) => setQuantity(Math.max(1, Number.parseInt(e.target.value) || 1))}
-                            className="w-20 text-center"
-                        />
-                        <Button variant="outline" size="icon" onClick={incrementQuantity}>
-                            <Plus className="h-4 w-4" />
-                        </Button>
+                    <h1 className="text-3xl font-bold tracking-tight text-primary-foreground">{product.name.split("-")[0]}</h1>
+                    <div className="flex items-center gap-4 mt-2">
+            <span className="text-2xl font-bold text-secondary-foreground">
+              {product.basePrice?.toFixed(2)}€
+            </span>
+                        {product.type && <Badge variant="destructive">{product.type.replace("_", " ")}</Badge>}
                     </div>
                 </div>
-            </div>
 
-            <div className="flex gap-4">
-                <Button className="flex-1" size="lg">
+                <Separator />
+
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="color"
+                        render={({ field }) => (
+                            <FormItem>
+                                <Label className="text-base text-foreground">Color</Label>
+                                <FormControl>
+                                    <RadioGroup
+                                        onValueChange={(value) => {
+                                            field.onChange(value)
+                                        }}
+                                        value={field.value}
+                                        className="flex gap-2 mt-3"
+                                    >
+                                        {colors.map((color) => (
+                                            <div key={color.name} className="flex flex-col items-center gap-1.5">
+                                                <RadioGroupItem value={color.name} id={`color-${color.name}`} className="peer sr-only" />
+                                                <Label
+                                                    htmlFor={`color-${color.name}`}
+                                                    className="h-8 w-8 rounded-full border peer-data-[state=checked]:ring-2 ring-accent cursor-pointer"
+                                                    style={{ backgroundColor: color.hexCode }}
+                                                />
+                                                <span className="text-xs text-secondary-foreground">{color.name}</span>
+                                            </div>
+                                        ))}
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {hasSizes && (
+                        <FormField
+                            control={form.control}
+                            name="size"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <Label className="text-base text-foreground">Talla</Label>
+                                    <FormControl>
+                                        <RadioGroup
+                                            onValueChange={(value) => {
+                                                field.onChange(value)
+                                            }}
+                                            value={field.value as string | undefined}
+                                            className="flex flex-wrap gap-2 mt-3"
+                                        >
+                                            {sizes.map((size) => (
+                                                <div key={size.value}>
+                                                    <RadioGroupItem value={size.value} id={`size-${size.value}`} className="peer sr-only" />
+                                                    <Label
+                                                        htmlFor={`size-${size.value}`}
+                                                        className="px-4 py-2 border rounded-md peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/60 cursor-pointer hover:bg-secondary text-foreground"
+                                                    >
+                                                        {size.value}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
+
+                    <FormField
+                        control={form.control}
+                        name="quantity"
+                        render={({ field }) => (
+                            <FormItem>
+                                <Label className="text-base text-foreground">Cantidad</Label>
+                                <FormControl>
+                                    <div className="flex items-center gap-2 mt-3">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => field.onChange(Math.max(1, field.value - 1))}
+                                        >
+                                            <Minus className="h-4 w-4" />
+                                        </Button>
+                                        <Input
+                                            type="number"
+                                            {...field}
+                                            onChange={(e) => field.onChange(Math.max(1, Number.parseInt(e.target.value) || 1))}
+                                            className="w-20 text-center"
+                                        />
+                                        <Button type="button" variant="outline" size="icon" onClick={() => field.onChange(field.value + 1)}>
+                                            <Plus className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <Button type="submit" className="w-full" size="lg">
                     <ShoppingCart className="mr-2 h-5 w-5" />
                     Añadir al carrito
                 </Button>
-            </div>
 
-            <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="description">
-                    <AccordionTrigger>Información del Producto</AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground">{product.description || "No hay descripción disponible"}</AccordionContent>
-                </AccordionItem>
-            </Accordion>
-        </div>
+                <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="description">
+                        <AccordionTrigger>Información del Producto</AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground">
+                            {product.description || "No hay descripción disponible"}
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </form>
+        </Form>
     )
 }
+

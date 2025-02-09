@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { SearchBar } from "@/components/SearchBar"
 import {CartSheet} from "@/components/cart/CartSheet";
-import {useCart} from "@/providers/cart-provider";
+import {useCart} from "@/providers/CartProvider";
 
 export function Header() {
 
@@ -93,12 +93,15 @@ export function Header() {
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon">
-                      <ShoppingBag className="h-5 w-5" />
-                      {cartItems.length > 0 && (
-                          <span className="relative bottom-3 right-3 bg-secondary-foreground text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
+                      <div className="relative">
+                        {cartItems.length > 0 && (
+                          <span
+                            className="absolute left-3 bottom-3 bg-secondary-foreground text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
                             {cartItems.length}
-                          </span>
-                      )}
+                          </span>)
+                        }
+                        <ShoppingBag className="h-5 w-5" />
+                      </div>
                     </Button>
                   </SheetTrigger>
                   <CartSheet />
