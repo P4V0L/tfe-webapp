@@ -4,8 +4,8 @@ import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import type { CartItem, Size, Color } from "@prisma/client"
 import type { AddToCartFormData } from "@/schemas/cart"
-import {getColorByName, getSizeByValue} from "@/actions/data/db"
-
+import { getColorByName, getSizeByValue } from "@/actions/data/db"
+import { useRouter } from "next/navigation"
 
 interface ExtendedCartItem extends Omit<CartItem, "id"> {
     id: string
@@ -26,6 +26,14 @@ interface CartContextType {
     removeFromCart: (itemId: string) => void
     updateQuantity: (itemId: string, quantity: number) => void
     clearCart: () => void
+    proceedToCheckout: () => void
+    subtotal: number
+    tax: number
+    shippingCost: number
+    discount: number
+    updateShippingCost: (cost: number) => void
+    updateDiscount: (discount: number) => void
+    total: number
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -36,6 +44,14 @@ const generateUniqueId = () => {
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [cartItems, setCartItems] = useState<ExtendedCartItem[]>([])
+    const [shippingCost, setShippingCost] = useState(0)
+    const [discount, setDiscount] = useState(0)
+    const router = useRouter()
+
+    // Calculate cart totals
+    const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
+    const tax = subtotal * 0.21 // 21% IVA
+    const total = subtotal + tax + shippingCost - discount
 
     useEffect(() => {
         const storedCart = localStorage.getItem("cart")
@@ -49,7 +65,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [cartItems])
 
     const addToCart = async (formData: AddToCartFormData) => {
-        const { color, size, productId, quantity, image, productName, price} = formData
+        const { color, size, productId, quantity, image, productName, price } = formData
 
         const colorType = await getColorByName(color)
         if (!colorType) {
@@ -59,17 +75,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         try {
             setCartItems((prevItems) => {
-                console.log(prevItems)
                 const existingItemIndex = prevItems.findIndex((item) => {
-
-                    const sameProduct = item.productId === productId;
-                    const sameColor = item.color.name === colorType.name;
-                    const sameSize = (item.size?.value ?? null) === (sizeType?.value ?? null);
-
-                    // console.log(sameProduct, sameColor, sameSize);
-                    return sameProduct && sameColor && sameSize;
-                });
-                console.log(existingItemIndex);
+                    const sameProduct = item.productId === productId
+                    const sameColor = item.color.name === colorType.name
+                    const sameSize = (item.size?.value ?? null) === (sizeType?.value ?? null)
+                    return sameProduct && sameColor && sameSize
+                })
 
                 if (existingItemIndex !== -1) {
                     const updatedItems = [...prevItems]
@@ -83,7 +94,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 const newItem: ExtendedCartItem = {
                     id: generateUniqueId(),
-                    cartId: "", // This should be set when creating an order
+                    cartId: "",
                     productId: productId,
                     name: productName,
                     image: image,
@@ -93,13 +104,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     quantity,
                     createdAt: new Date(),
                     updatedAt: new Date(),
-                    productVariantId: ""
+                    productVariantId: "",
                 }
                 return [...prevItems, newItem]
             })
         } catch (error) {
             console.error("Error adding item to cart:", error)
-            // Here you might want to show an error message to the user
         }
     }
 
@@ -109,7 +119,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateQuantity = (itemId: string, quantity: number) => {
         setCartItems((prevItems) =>
-            prevItems.map((item) => (item.id === itemId ? { ...item, quantity, updatedAt: new Date() } : item)),
+            prevItems.map((item) =>
+                item.id === itemId ? { ...item, quantity, updatedAt: new Date() } : item,
+            ),
         )
     }
 
@@ -117,8 +129,38 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCartItems([])
     }
 
+    const proceedToCheckout = () => {
+        if (cartItems.length > 0) {
+            router.push("/checkout")
+        }
+    }
+
+    const updateShippingCost = (cost: number) => {
+        setShippingCost(cost)
+    }
+
+    const updateDiscount = (discountValue: number) => {
+        setDiscount(discountValue)
+    }
+
     return (
-        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart }}>
+        <CartContext.Provider
+            value={{
+                cartItems,
+                addToCart,
+                removeFromCart,
+                updateQuantity,
+                clearCart,
+                proceedToCheckout,
+                subtotal,
+                tax,
+                shippingCost,
+                discount,
+                updateShippingCost,
+                updateDiscount,
+                total,
+            }}
+        >
             {children}
         </CartContext.Provider>
     )
@@ -131,4 +173,3 @@ export const useCart = () => {
     }
     return context
 }
-
