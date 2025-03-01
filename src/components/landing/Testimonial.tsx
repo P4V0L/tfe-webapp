@@ -10,7 +10,7 @@ const Testimonial = ({testimonial}: TestimonialProps) => {
     return (
         <Card className="flex-shrink-0 w-[300px] text-center p-6">
             <Image
-                src={testimonial.image || "/placeholder.svg"}
+                src={testimonial.image || "/user_placehold.png"}
                 alt={testimonial.name || "User image"}
                 width={64} height={64}
                 className="rounded-full mx-auto mb-4"

@@ -32,22 +32,22 @@ export default function ProductoDestacado({ product }: ProductoDestacadoProps) {
                     <p className="text-lg font-semibold text-primary-foreground">
                         {product.basePrice}€
                     </p>
-                    <div className="mt-2">
+                    <div className="mt-2 mb-3">
                         {product.categories?.map((category, index) => (
                             <span
                                 key={index}
-                                className="text-sm text-muted bg-accent py-1 px-2 rounded-xl"
+                                className="text-sm text-muted bg-accent py-1 px-2 rounded-sm"
                             >
                                 {category.category.name}
                             </span>
                         ))}
                     </div>
-                    <div className="flex items-center mt-2">
+                    <div className="flex items-center mt-2 gap-2">
                         {colors && (
                             colors.map((color) => (
                                 <div
                                     key={color?.id}
-                                    className="w-4 h-4 rounded-full"
+                                    className="w-4 h-4 rounded-full border border-secondary"
                                     style={{
                                         backgroundColor: color?.hexCode,
                                     }}

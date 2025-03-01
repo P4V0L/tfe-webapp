@@ -1,50 +1,53 @@
 "use client"
+
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
-import {
-    Package,
-    Calendar,
-    CreditCard,
-    ShoppingCartIcon as Paypal,
-} from "lucide-react"
+import { Package, Calendar, CreditCard, ShoppingCartIcon as Paypal } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Label } from "@/components/ui/label"
 import { type CheckoutFormData, checkoutSchema } from "@/schemas/checkout"
 import { useCart } from "@/providers/CartProvider"
 import { useSession } from "next-auth/react"
+import { createOrder } from "@/actions/order"
+
+const PROMO_CODES = [
+    { code: "PABLO10", discount: 0.1 },
+    { code: "JULIA20", discount: 0.2 },
+    { code: "MARIA30", discount: 0.3 },
+    { code: "PEDRO40", discount: 0.22 },
+    { code: "REBAJAS", discount: 0.35 },
+    { code: "VERANO", discount: 0.15 },
+]
+
+const shippingCost = (deliveryMethod: string, deliverySpeed: string): number => {
+    return deliveryMethod === "pickup"
+        ? 0.0
+        : deliverySpeed === "standard"
+            ? 5.0
+            : deliverySpeed === "express"
+                ? 10.0
+                : 20.0
+}
 
 export function CheckoutForm() {
-    const { subtotal, tax, total, updateShippingCost } = useCart()
+    const { cartItems, subtotal, tax, total, updateShippingCost } = useCart()
     const router = useRouter()
-    const session = useSession()
+    const { data: session } = useSession()
 
     const form = useForm<CheckoutFormData>({
         resolver: zodResolver(checkoutSchema),
         defaultValues: {
             contact: {
-                fullName: session?.data?.user?.name || "",
-                email: session?.data?.user?.email || "",
+                fullName: session?.user?.name || "",
+                email: session?.user?.email || "",
                 phone: "",
                 smsUpdates: false,
             },
@@ -63,35 +66,30 @@ export function CheckoutForm() {
     const deliverySpeed = form.watch("shipping.deliverySpeed")
 
     useEffect(() => {
-        let shippingCost = 0
+        let shippingCostValue = 0
         if (deliveryMethod === "delivery") {
             switch (deliverySpeed) {
                 case "express":
-                    shippingCost = 10
+                    shippingCostValue = 10
                     break
                 case "fast":
-                    shippingCost = 20
+                    shippingCostValue = 20
                     break
                 default:
-                    shippingCost = 5
+                    shippingCostValue = 5
             }
         }
-        updateShippingCost(shippingCost)
+        updateShippingCost(shippingCostValue)
     }, [deliveryMethod, deliverySpeed, updateShippingCost])
 
-    if (!form.formState.isValid) {
-        console.log(form.formState.errors)
-    }
-
-    // Estado para el código promocional y descuento
     const [promoCode, setPromoCode] = useState("")
     const [discount, setDiscount] = useState(0)
     const [promoError, setPromoError] = useState("")
 
     const applyPromoCode = () => {
-        // Ejemplo simple de validación. En una aplicación real, se validaría en el servidor.
-        if (promoCode === "PABLO10") {
-            setDiscount(total * 0.1)
+        const promoCodeFound = PROMO_CODES.find((code) => code.code === promoCode)
+        if (promoCodeFound) {
+            setDiscount(total * promoCodeFound.discount)
             setPromoError("")
         } else {
             setDiscount(0)
@@ -101,25 +99,35 @@ export function CheckoutForm() {
 
     const onSubmit = async (data: CheckoutFormData) => {
         try {
-            console.log(data)
-            // Calcula el total final restando el descuento
-            // const finalTotal = total - discount
-            // const order = await createOrder({
-            //     ...data,
-            //     items: cartItems,
-            //     total: finalTotal,
-            //     discount, // Se guarda el valor del descuento aplicado
-            // })
-            router.push(`/checkout/confirmation`)
+            if (!session?.user?.id) {
+                throw new Error("User not authenticated")
+            }
+
+            const order = await createOrder(
+                cartItems,
+                data,
+                session.user.id,
+                shippingCost(deliveryMethod, deliverySpeed),
+                discount,
+            )
+            if (!order) {
+                throw new Error("Error creating order")
+            }
+
+            console.log(order)
+            router.push(`/checkout/confirmation?orderId=${order.id}`)
         } catch (error) {
             console.error("Error creating order:", error)
+            // Handle error (e.g., show error message to user)
         }
     }
 
     return (
         <div className="grid gap-8 lg:grid-cols-[1fr,380px]">
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                {/* Added id="checkout-form" to link the external button */}
+                <form id="checkout-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    {/* Contact Information */}
                     <Card className="p-6">
                         <h2 className="text-lg font-semibold mb-4">1. Contacto</h2>
                         <div className="space-y-4">
@@ -171,9 +179,7 @@ export function CheckoutForm() {
                                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         </FormControl>
                                         <div className="space-y-1 leading-none">
-                                            <FormLabel>
-                                                Consiento recibir mensajes de texto para actualizaciones de pedidos
-                                            </FormLabel>
+                                            <FormLabel>Consiento recibir mensajes de texto para actualizaciones de pedidos</FormLabel>
                                         </div>
                                     </FormItem>
                                 )}
@@ -181,6 +187,7 @@ export function CheckoutForm() {
                         </div>
                     </Card>
 
+                    {/* Shipping Information */}
                     <Card className="p-6">
                         <h2 className="text-lg font-semibold mb-4">2. Envío</h2>
                         <FormField
@@ -368,6 +375,7 @@ export function CheckoutForm() {
                         )}
                     </Card>
 
+                    {/* Payment Information */}
                     <Card className="p-6">
                         <h2 className="text-lg font-semibold mb-4">3. Pago</h2>
                         <FormField
@@ -468,9 +476,7 @@ export function CheckoutForm() {
                                                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                             </FormControl>
                                             <div className="space-y-1 leading-none">
-                                                <FormLabel>
-                                                    Usar dirección de envío como dirección de facturación
-                                                </FormLabel>
+                                                <FormLabel>Usar dirección de envío como dirección de facturación</FormLabel>
                                             </div>
                                         </FormItem>
                                     )}
@@ -490,21 +496,12 @@ export function CheckoutForm() {
                             <span>{subtotal.toFixed(2)}€</span>
                         </div>
                         <div className="flex justify-between">
-                            <span>Envío</span>
-                            <span>
-                {deliveryMethod === "pickup"
-                    ? "0.00"
-                    : deliverySpeed === "standard"
-                        ? "5.00"
-                        : deliverySpeed === "express"
-                            ? "10.00"
-                            : "20.00"}
-                                €
-              </span>
+                            <span>Impuestos</span>
+                            <span>{tax.toFixed(2)}€</span>
                         </div>
                         <div className="flex justify-between">
-                            <span>Impuesto</span>
-                            <span>{tax.toFixed(2)}€</span>
+                            <span>Envío</span>
+                            <span>{shippingCost(deliveryMethod, deliverySpeed).toFixed(2)}€</span>
                         </div>
                         {discount > 0 && (
                             <div className="flex justify-between text-primary">
@@ -527,12 +524,8 @@ export function CheckoutForm() {
                             </Button>
                         </div>
                         {promoError && <p className="text-accent">{promoError}</p>}
-                        <Button
-                            className="w-full"
-                            type="submit"
-                            variant="default"
-                            onClick={form.handleSubmit(onSubmit)}
-                        >
+                        {/* The submit button is linked to the form via form="checkout-form" */}
+                        <Button form="checkout-form" className="w-full" type="submit" variant="default">
                             Finalizar pedido
                         </Button>
                     </div>
@@ -541,3 +534,4 @@ export function CheckoutForm() {
         </div>
     )
 }
+

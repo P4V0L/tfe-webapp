@@ -1,13 +1,13 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, useCallback } from "react"
 import type { CartItem, Size, Color } from "@prisma/client"
 import type { AddToCartFormData } from "@/schemas/cart"
 import { getColorByName, getSizeByValue } from "@/actions/data/db"
 import { useRouter } from "next/navigation"
 
-interface ExtendedCartItem extends Omit<CartItem, "id"> {
+export interface ExtendedCartItem extends Omit<CartItem, "id"> {
     id: string
     image: string
     name: string
@@ -32,11 +32,14 @@ interface CartContextType {
     shippingCost: number
     discount: number
     updateShippingCost: (cost: number) => void
-    updateDiscount: (discount: number) => void
+    applyDiscountCode: (code: string) => Promise<boolean>
     total: number
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
+
+const TAX_RATE = 0.21 // 21% IVA
+const SHIPPING_THRESHOLD = 100 // Free shipping for orders over 100€
 
 const generateUniqueId = () => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2)
@@ -48,10 +51,29 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [discount, setDiscount] = useState(0)
     const router = useRouter()
 
-    // Calculate cart totals
-    const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
-    const tax = subtotal * 0.21 // 21% IVA
-    const total = subtotal + tax + shippingCost - discount
+    const calculateSubtotal = useCallback(() => {
+        return cartItems.reduce((total, item) => total + (item.price / (1 + TAX_RATE)) * item.quantity, 0)
+    }, [cartItems])
+
+    const calculateTax = useCallback((subtotal: number) => {
+        return subtotal * TAX_RATE
+    }, [])
+
+    const calculateShippingCost = useCallback(
+        (subtotal: number) => {
+            return subtotal > SHIPPING_THRESHOLD ? 0 : shippingCost
+        },
+        [shippingCost],
+    )
+
+    const calculateTotal = useCallback((subtotal: number, tax: number, shipping: number, discount: number) => {
+        return subtotal + tax + shipping - discount
+    }, [])
+
+    const subtotal = calculateSubtotal()
+    const tax = calculateTax(subtotal)
+    const calculatedShippingCost = calculateShippingCost(subtotal)
+    const total = calculateTotal(subtotal, tax, calculatedShippingCost, discount)
 
     useEffect(() => {
         const storedCart = localStorage.getItem("cart")
@@ -119,14 +141,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateQuantity = (itemId: string, quantity: number) => {
         setCartItems((prevItems) =>
-            prevItems.map((item) =>
-                item.id === itemId ? { ...item, quantity, updatedAt: new Date() } : item,
-            ),
+            prevItems.map((item) => (item.id === itemId ? { ...item, quantity, updatedAt: new Date() } : item)),
         )
     }
 
     const clearCart = () => {
         setCartItems([])
+        setDiscount(0)
+        setShippingCost(0)
     }
 
     const proceedToCheckout = () => {
@@ -139,8 +161,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setShippingCost(cost)
     }
 
-    const updateDiscount = (discountValue: number) => {
-        setDiscount(discountValue)
+    const applyDiscountCode = async (code: string): Promise<boolean> => {
+        // This is a placeholder for discount code logic
+        // In a real application, you would validate the code against a database or API
+        if (code === "SUMMER10") {
+            setDiscount(subtotal * 0.1) // 10% discount
+            return true
+        }
+        return false
     }
 
     return (
@@ -154,10 +182,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 proceedToCheckout,
                 subtotal,
                 tax,
-                shippingCost,
+                shippingCost: calculatedShippingCost,
                 discount,
                 updateShippingCost,
-                updateDiscount,
+                applyDiscountCode,
                 total,
             }}
         >
@@ -173,3 +201,4 @@ export const useCart = () => {
     }
     return context
 }
+

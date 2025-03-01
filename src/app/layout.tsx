@@ -48,7 +48,7 @@ export default function RootLayout({
             <CartProvider>
                 <SessionProvider>
                     <Header />
-                    <main className="container mx-auto px-4 py-8">{children}</main>
+                    <main className="container mx-auto px-4 py-8 min-h-[calc(100vh-300px)]">{children}</main>
                     <Footer />
                 </SessionProvider>
             </CartProvider>

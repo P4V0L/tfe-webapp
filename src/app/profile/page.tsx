@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import Image from "next/image"
 import {auth} from "@/auth";
 import {getCompleteUser} from "@/actions/user";
+import OrdersTable from "@/components/profile/OrdersTable";
 
 export default async function ProfilePage() {
     const session = await auth()
@@ -13,8 +14,6 @@ export default async function ProfilePage() {
     const userId = session?.user?.id || ""
 
     const user = await getCompleteUser(userId)
-
-    console.log(user)
 
     if (!user) {
         return <div>User not found</div>
@@ -42,22 +41,7 @@ export default async function ProfilePage() {
             {user.orders.length === 0 ? (
                 <p>No hay pedidos todavía.</p>
             ) : (
-                <ul className="space-y-4">
-                    {user.orders.map((order) => (
-                        <li key={order.id} className="border p-4 rounded-lg">
-                            <p className="font-semibold">Pedido: {order.id}</p>
-                            <p>Status: {order.status}</p>
-                            <p>Total Amount: €{order.totalAmount.toFixed(2)}</p>
-                            <ul className="mt-2">
-                                {order.items.map((item) => (
-                                    <li key={item.id}>
-                                        {item.productVariant.product.name} - Cantidad: {item.quantity}
-                                    </li>
-                                ))}
-                            </ul>
-                        </li>
-                    ))}
-                </ul>
+                <OrdersTable orders={user.orders} />
             )}
         </div>
     )

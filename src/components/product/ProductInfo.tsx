@@ -49,14 +49,6 @@ export function ProductInfo({ product }: ProductInfoProps) {
     ).reverse()
     const hasSizes = sizes.length > 0
 
-    // const updateVariant = (color: string, size: string) => {
-    //     const newVariant = product.variants.find((v) => v.color?.name === color && (!hasSizes || v.size?.value === size))
-    //     if (newVariant) {
-    //         setSelectedVariant(newVariant)
-    //         form.setValue("variantId", newVariant.id)
-    //     }
-    // }
-
     const onSubmit = (data: AddToCartFormData) => {
         console.log(data)
         addToCart({
@@ -68,9 +60,9 @@ export function ProductInfo({ product }: ProductInfoProps) {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-primary-foreground">{product.name.split("-")[0]}</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-secondary-foreground">{product.name.split("-")[0]}</h1>
                     <div className="flex items-center gap-4 mt-2">
-            <span className="text-2xl font-bold text-secondary-foreground">
+            <span className="text-2xl font-black text-secondary-foreground font-serif">
               {product.basePrice?.toFixed(2)}€
             </span>
                         {product.type && <Badge variant="destructive">{product.type.replace("_", " ")}</Badge>}
@@ -85,7 +77,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                         name="color"
                         render={({ field }) => (
                             <FormItem>
-                                <Label className="text-base text-foreground">Color</Label>
+                                <Label className="text-base text-foreground">Colores</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={(value) => {
@@ -102,7 +94,6 @@ export function ProductInfo({ product }: ProductInfoProps) {
                                                     className="h-8 w-8 rounded-full border peer-data-[state=checked]:ring-2 ring-accent cursor-pointer"
                                                     style={{ backgroundColor: color.hexCode }}
                                                 />
-                                                <span className="text-xs text-secondary-foreground">{color.name}</span>
                                             </div>
                                         ))}
                                     </RadioGroup>
@@ -167,6 +158,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                                             {...field}
                                             onChange={(e) => field.onChange(Math.max(1, Number.parseInt(e.target.value) || 1))}
                                             className="w-20 text-center"
+                                            readOnly
                                         />
                                         <Button type="button" variant="outline" size="icon" onClick={() => field.onChange(field.value + 1)}>
                                             <Plus className="h-4 w-4" />
