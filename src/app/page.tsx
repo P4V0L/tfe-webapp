@@ -12,7 +12,7 @@ import ProductoDestacado from "@/components/landing/ProductoDestacado";
 
 const heroInfo = {
     title: "¡Rebajas de invierno! Hasta 50% de descuento",
-    image: "https://placehold.co/600x400",
+    image: "/hero_img.png",
     ctaText: "Comprar Ahora",
     ctaLink: "/catalogo"
 }
