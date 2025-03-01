@@ -6,7 +6,9 @@ import {RegisterForm} from "@/components/auth/register-form";
 const RegisterPage = () => {
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <RegisterForm/>
+            <div className="flex flex-col items-center justify-center fit-content gap-4 mt-10">
+                <RegisterForm/>
+            </div>
         </Suspense>
     );
 };

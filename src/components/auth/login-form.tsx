@@ -49,6 +49,8 @@ export const LoginForm = () => {
     return (
         <CardWrapper
             headerLabel="Inicio de sesión"
+            backButtonHref="/auth/register"
+            backButtonLabel="Registrate"
         >
             <Form {...form}>
                 <form
@@ -65,7 +67,7 @@ export const LoginForm = () => {
                                     <Input
                                         {...field}
                                         disabled={isPending}
-                                        placeholder="email"
+                                        placeholder="email@ejemplo.com"
                                         type="email"
                                     />
                                 </FormControl>
