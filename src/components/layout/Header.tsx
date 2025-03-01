@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, User, ShoppingBag } from "lucide-react"
@@ -18,8 +19,8 @@ import { useCart } from "@/providers/CartProvider"
 export function Header() {
   const pathname = usePathname()
   const { cartItems } = useCart()
+  const [navSheetOpen, setNavSheetOpen] = useState(false)
 
-  // Si la ruta empieza con /checkout, se muestra solo el título centrado y clicable.
   if (pathname.startsWith("/checkout")) {
     return (
         <header className="bg-white border-b">
@@ -59,7 +60,6 @@ export function Header() {
                   CATÁLOGO
                 </Link>
               </nav>
-              {/* Columna derecha: Iconos */}
               <div className="flex items-center justify-end space-x-4">
                 <SearchBar />
                 <Link href="/profile">
@@ -86,7 +86,7 @@ export function Header() {
             </div>
             <div className="flex items-center justify-between md:hidden">
               <div>
-                <Sheet>
+                <Sheet open={navSheetOpen} onOpenChange={setNavSheetOpen}>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon">
                       <Menu className="h-5 w-5 mr-4" />
@@ -99,12 +99,14 @@ export function Header() {
                     <div className="mt-4 flex flex-col space-y-2">
                       <Link
                           href="/"
+                          onClick={() => setNavSheetOpen(false)}
                           className="text-black hover:text-accent transition-colors"
                       >
                         Inicio
                       </Link>
                       <Link
                           href="/catalogo"
+                          onClick={() => setNavSheetOpen(false)}
                           className="text-black hover:text-accent transition-colors"
                       >
                         Catálogo

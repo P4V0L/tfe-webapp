@@ -7,7 +7,6 @@ import {db} from "@/lib/db";
 import {getUserByEmail} from "@/actions/data/user";
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
-    console.log('Registering user', values)
     const validatedFields = RegisterSchema.safeParse(values);
 
     if (!validatedFields.success) {
@@ -15,7 +14,6 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     }
 
     const { email, password, name } = validatedFields.data;
-    console.log(validatedFields.data)
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const existingUser = await getUserByEmail(email)

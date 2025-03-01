@@ -67,7 +67,6 @@ export function FilterSidebar({ categories, colors }: FilterSidebarProps) {
                     </Button>
                 </div>
 
-                {/* Selected Filters Summary */}
                 {(searchParams?.category.length > 0 ||
                     searchParams?.color.length > 0 ||
                     searchParams?.minPrice !== undefined ||
@@ -190,7 +189,6 @@ export function FilterSidebar({ categories, colors }: FilterSidebarProps) {
                     </div>
                 </div>
 
-                {/* Price Ranges */}
                 <div>
                     <h3 className="font-semibold mb-4">Precio</h3>
                     <div className="space-y-2">
@@ -212,7 +210,6 @@ export function FilterSidebar({ categories, colors }: FilterSidebarProps) {
                     </div>
                 </div>
 
-                {/* Custom Price Range */}
                 <div>
                     <h3 className="font-semibold mb-4">Rango personalizado</h3>
                     <div className="flex gap-2">

@@ -38,7 +38,7 @@ export const createOrder = async (
                 image: item.image,
                 color: { connect: { id: item.color.id } },
                 size: item.size ? { connect: { id: item.size.id } } : undefined,
-                priceAtPurchase: item.price / (1 + TAX_RATE), // Store the base price without tax
+                priceAtPurchase: item.price / (1 + TAX_RATE),
                 quantity: item.quantity,
             })),
         },
@@ -72,13 +72,11 @@ export const getOrder = async (orderId: string) => {
         throw new Error("Order not found")
     }
 
-    // Transform each item to include missing fields
     const transformedItems = order.items.map((item) => ({
         ...item,
-        productVariantId: item.productId, // Map productVariantId from productId
-        // Compute price including tax; adjust if needed
+        productVariantId: item.productId,
         price: item.priceAtPurchase * (1 + TAX_RATE),
-        cartId: order.id, // You can use the order id as the cartId
+        cartId: order.id,
     }))
 
     return {

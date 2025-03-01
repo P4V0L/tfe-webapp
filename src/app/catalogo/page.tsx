@@ -12,7 +12,7 @@ async function getFilters() {
     const [categories, colors] = await Promise.all([
         prisma.category.findMany({
             where: {
-                parentId: null, // Only root categories
+                parentId: null,
             },
             include: {
                 children: true,
@@ -159,7 +159,7 @@ async function CatalogContent({ searchParams }: CatalogPageProps) {
 
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div>Cargando...</div>}>
             <CatalogContent searchParams={searchParams} />
         </Suspense>
     )

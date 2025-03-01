@@ -1,13 +1,11 @@
-// app/actions/data-actions.ts
 'use server';
 
 import {ProductType} from '@prisma/client';
 import {db} from "@/lib/db";
-import {FullProduct} from "@/models/product"; // Adjust import path
+import {FullProduct} from "@/models/product";
 
 const prisma = db
 
-// User Actions
 export async function getUsers() {
     try {
         return await prisma.user.findMany({
@@ -27,7 +25,6 @@ export async function getUsers() {
     }
 }
 
-// Testimonial Actions
 export async function getTestimonials() {
     try {
         const testimonials = await prisma.testimonial.findMany({
@@ -47,7 +44,6 @@ export async function getTestimonials() {
             ...t,
             name: t.user.name,
             image: t.user.image,
-            // optionally remove the nested user if you don't want it
             user: undefined,
         }));
     } catch (error) {
@@ -56,7 +52,6 @@ export async function getTestimonials() {
     }
 }
 
-// Product Actions
 export async function getProducts(options?: { category?: string; type?: ProductType; }): Promise<FullProduct[]> {
     try {
         return await prisma.product.findMany({
@@ -218,7 +213,6 @@ export async function getProductBySlug(slug: string): Promise<FullProduct | null
     }
 }
 
-// Review Actions
 export async function getProductReviews(productId: string) {
     try {
         return await prisma.productReview.findMany({
@@ -239,7 +233,6 @@ export async function getProductReviews(productId: string) {
     }
 }
 
-// Category Actions
 export async function getCategories() {
     try {
         return await prisma.category.findMany({
@@ -277,7 +270,6 @@ export async function getProductsByCategory(slug: string) {
     }
 }
 
-// Cart Actions
 export async function getCartByUserId(userId: string) {
     try {
         return await prisma.cart.findUnique({
@@ -340,7 +332,6 @@ export async function deleteCartItem(id: string) {
     }
 }
 
-// Admin Actions
 export async function toggleTestimonialApproval(id: string) {
     try {
         const testimonial = await prisma.testimonial.findUnique({ where: { id } });
@@ -353,36 +344,14 @@ export async function toggleTestimonialApproval(id: string) {
         throw error;
     }
 }
-//
-// export async function getProductVariant(variantId: string) {
-//     try {
-//         return await prisma.productVariant.findUnique({
-//             where: {id: variantId},
-//             include: {
-//                 product: {
-//                     include: {
-//                         images: true,
-//                     },
-//                 },
-//                 size: true,
-//                 color: true,
-//             },
-//         })
-//     } catch (error) {
-//         console.error("Error fetching product variant:", error)
-//         return null
-//     }
-// }
 
 export async function getProductVariant(productId: string, sizeValue: string, colorName: string) {
     try {
-        // Fetch Size ID
         const size = await prisma.size.findUnique({
             where: { value: sizeValue },
             select: { id: true }
         });
 
-        // Fetch Color ID
         const color = await prisma.color.findUnique({
             where: { name: colorName },
             select: { id: true }
@@ -392,7 +361,6 @@ export async function getProductVariant(productId: string, sizeValue: string, co
             throw new Error("Size or Color not found");
         }
 
-        // Fetch the Product Variant
         return await prisma.productVariant.findFirst({
             where: {
                 productId: productId,

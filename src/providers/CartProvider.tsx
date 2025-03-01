@@ -162,10 +162,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const applyDiscountCode = async (code: string): Promise<boolean> => {
-        // This is a placeholder for discount code logic
-        // In a real application, you would validate the code against a database or API
         if (code === "SUMMER10") {
-            setDiscount(subtotal * 0.1) // 10% discount
+            setDiscount(subtotal * 0.1)
             return true
         }
         return false

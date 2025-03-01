@@ -5,7 +5,7 @@ import { LoginForm } from "@/components/auth/login-form";
 
 const LoginPage = () => {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div>Cargando...</div>}>
             <div className="flex flex-col items-center justify-center fit-content gap-4 mt-10">
                 <LoginForm />
             </div>

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { ExtendedOrder } from "@/models/order"; // ExtendedOrder includes items: ExtendedCartItem[]
+import { ExtendedOrder } from "@/models/order";
 
 export const getCompleteUser = async (userId: string) => {
     const user = await db.user.findUnique({
@@ -22,7 +22,6 @@ export const getCompleteUser = async (userId: string) => {
         return null;
     }
 
-    // Map over each order to ensure it conforms to ExtendedOrder
     const extendedOrders: ExtendedOrder[] = user.orders.map((order) => ({
         id: order.id,
         subtotal: order.subtotal,
@@ -33,13 +32,11 @@ export const getCompleteUser = async (userId: string) => {
         createdAt: order.createdAt,
         status: order.status,
         updatedAt: order.updatedAt,
-        // Transform each order item to ExtendedCartItem
         items: order.items.map((item) => ({
             ...item,
-            // Provide the missing fields for ExtendedCartItem
-            price: item.priceAtPurchase,         // Using priceAtPurchase as price
-            cartId: order.id,                    // Using the order id as cartId
-            productVariantId: item.productId,    // Using productId as productVariantId
+            price: item.priceAtPurchase,
+            cartId: order.id,
+            productVariantId: item.productId,
         })),
     }));
 

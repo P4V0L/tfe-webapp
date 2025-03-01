@@ -35,8 +35,6 @@ export const LoginForm = () => {
         setError("");
         setSuccess("");
 
-        console.log('On submit')
-
         login(values).then((resp) => {
             if (resp?.error) {
                 setError(resp.error)

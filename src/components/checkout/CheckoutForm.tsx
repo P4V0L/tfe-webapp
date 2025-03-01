@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
-import { Package, Calendar, CreditCard, ShoppingCartIcon as Paypal } from "lucide-react"
+import { Package, Calendar, CreditCard, ShoppingCartIcon as Paypal, Loader } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Label } from "@/components/ui/label"
 import { type CheckoutFormData, checkoutSchema } from "@/schemas/checkout"
@@ -41,6 +41,11 @@ export function CheckoutForm() {
     const { cartItems, subtotal, tax, total, updateShippingCost } = useCart()
     const router = useRouter()
     const { data: session } = useSession()
+
+    const [isLoading, setIsLoading] = useState(false)
+    const [promoCode, setPromoCode] = useState("")
+    const [discount, setDiscount] = useState(0)
+    const [promoError, setPromoError] = useState("")
 
     const form = useForm<CheckoutFormData>({
         resolver: zodResolver(checkoutSchema),
@@ -82,10 +87,6 @@ export function CheckoutForm() {
         updateShippingCost(shippingCostValue)
     }, [deliveryMethod, deliverySpeed, updateShippingCost])
 
-    const [promoCode, setPromoCode] = useState("")
-    const [discount, setDiscount] = useState(0)
-    const [promoError, setPromoError] = useState("")
-
     const applyPromoCode = () => {
         const promoCodeFound = PROMO_CODES.find((code) => code.code === promoCode)
         if (promoCodeFound) {
@@ -98,6 +99,7 @@ export function CheckoutForm() {
     }
 
     const onSubmit = async (data: CheckoutFormData) => {
+        setIsLoading(true)
         try {
             if (!session?.user?.id) {
                 throw new Error("User not authenticated")
@@ -114,20 +116,18 @@ export function CheckoutForm() {
                 throw new Error("Error creating order")
             }
 
-            console.log(order)
             router.push(`/checkout/confirmation?orderId=${order.id}`)
         } catch (error) {
             console.error("Error creating order:", error)
-            // Handle error (e.g., show error message to user)
+        } finally {
+            setIsLoading(false)
         }
     }
 
     return (
         <div className="grid gap-8 lg:grid-cols-[1fr,380px]">
             <Form {...form}>
-                {/* Added id="checkout-form" to link the external button */}
                 <form id="checkout-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    {/* Contact Information */}
                     <Card className="p-6">
                         <h2 className="text-lg font-semibold mb-4">1. Contacto</h2>
                         <div className="space-y-4">
@@ -179,7 +179,9 @@ export function CheckoutForm() {
                                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         </FormControl>
                                         <div className="space-y-1 leading-none">
-                                            <FormLabel>Consiento recibir mensajes de texto para actualizaciones de pedidos</FormLabel>
+                                            <FormLabel>
+                                                Consiento recibir mensajes de texto para actualizaciones de pedidos
+                                            </FormLabel>
                                         </div>
                                     </FormItem>
                                 )}
@@ -187,7 +189,6 @@ export function CheckoutForm() {
                         </div>
                     </Card>
 
-                    {/* Shipping Information */}
                     <Card className="p-6">
                         <h2 className="text-lg font-semibold mb-4">2. Envío</h2>
                         <FormField
@@ -375,7 +376,6 @@ export function CheckoutForm() {
                         )}
                     </Card>
 
-                    {/* Payment Information */}
                     <Card className="p-6">
                         <h2 className="text-lg font-semibold mb-4">3. Pago</h2>
                         <FormField
@@ -476,7 +476,9 @@ export function CheckoutForm() {
                                                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                             </FormControl>
                                             <div className="space-y-1 leading-none">
-                                                <FormLabel>Usar dirección de envío como dirección de facturación</FormLabel>
+                                                <FormLabel>
+                                                    Usar dirección de envío como dirección de facturación
+                                                </FormLabel>
                                             </div>
                                         </FormItem>
                                     )}
@@ -524,9 +526,21 @@ export function CheckoutForm() {
                             </Button>
                         </div>
                         {promoError && <p className="text-accent">{promoError}</p>}
-                        {/* The submit button is linked to the form via form="checkout-form" */}
-                        <Button form="checkout-form" className="w-full" type="submit" variant="default">
-                            Finalizar pedido
+                        <Button
+                            form="checkout-form"
+                            className="w-full"
+                            type="submit"
+                            variant="default"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader className="mr-2 h-5 w-5 animate-spin" />
+                                    Finalizando...
+                                </>
+                            ) : (
+                                "Finalizar pedido"
+                            )}
                         </Button>
                     </div>
                 </Card>
@@ -534,4 +548,3 @@ export function CheckoutForm() {
         </div>
     )
 }
-

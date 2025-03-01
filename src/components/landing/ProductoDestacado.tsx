@@ -1,4 +1,4 @@
-"use client";  // <--- add this
+"use client";
 
 import { Card, CardContent } from "@/components/ui/card";
 import {FullProduct} from "@/models/product";

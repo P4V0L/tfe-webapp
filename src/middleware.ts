@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth"; // Ensure this points to your auth configuration
+import { auth } from "@/auth";
 import {
     DEFAULT_LOGIN_REDIRECT,
     apiAuthPrefix,
@@ -13,10 +13,8 @@ export default auth(async (req) => {
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname) || nextUrl.pathname.startsWith('/admin') || nextUrl.pathname.startsWith('/product/');
     const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
-    // Retrieve the token from the request
     const token = req.auth;
 
-    // Check if the token exists and is not expired
     const isLoggedIn = !!token;
     const isTokenExpired = token?.expires ? Date.now() >= new Date(token.expires).getTime() : true;
 
@@ -38,7 +36,6 @@ export default auth(async (req) => {
     return NextResponse.next();
 });
 
-// Optionally, don't invoke Middleware on some paths
 export const config = {
     matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
 };

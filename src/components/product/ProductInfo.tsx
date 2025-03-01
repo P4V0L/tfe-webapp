@@ -1,12 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Minus, Plus, ShoppingCart } from "lucide-react"
+import { Minus, Plus, ShoppingCart, Loader } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -14,6 +15,7 @@ import type { ColorType, FullProduct } from "@/models/product"
 import { useCart } from "@/providers/CartProvider"
 import { addToCartSchema, type AddToCartFormData } from "@/schemas/cart"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
+import { useToast } from "@/hooks/use-toast"
 
 interface ProductInfoProps {
     product: FullProduct
@@ -21,7 +23,8 @@ interface ProductInfoProps {
 
 export function ProductInfo({ product }: ProductInfoProps) {
     const { addToCart } = useCart()
-    // const [selectedVariant, setSelectedVariant] = useState(product.variants[0])
+    const { toast } = useToast()
+    const [isLoading, setIsLoading] = useState(false)
 
     const form = useForm<AddToCartFormData>({
         resolver: zodResolver(addToCartSchema),
@@ -49,18 +52,30 @@ export function ProductInfo({ product }: ProductInfoProps) {
     ).reverse()
     const hasSizes = sizes.length > 0
 
-    const onSubmit = (data: AddToCartFormData) => {
-        console.log(data)
-        addToCart({
-            ...data
-        })
+    const onSubmit = async (data: AddToCartFormData) => {
+        setIsLoading(true)
+        try {
+            await addToCart({ ...data })
+            toast({
+                title: "El producto se ha añadido al carrito",
+                variant: "destructive"
+            })
+        } catch (error) {
+            console.error("Error adding product to cart:", error)
+            toast({
+                title: "Error al añadir al carrito"
+            })
+        }
+        setIsLoading(false)
     }
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-secondary-foreground">{product.name.split("-")[0]}</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-secondary-foreground">
+                        {product.name.split("-")[0]}
+                    </h1>
                     <div className="flex items-center gap-4 mt-2">
             <span className="text-2xl font-black text-secondary-foreground font-serif">
               {product.basePrice?.toFixed(2)}€
@@ -80,15 +95,17 @@ export function ProductInfo({ product }: ProductInfoProps) {
                                 <Label className="text-base text-foreground">Colores</Label>
                                 <FormControl>
                                     <RadioGroup
-                                        onValueChange={(value) => {
-                                            field.onChange(value)
-                                        }}
+                                        onValueChange={(value) => field.onChange(value)}
                                         value={field.value}
                                         className="flex gap-2 mt-3"
                                     >
                                         {colors.map((color) => (
                                             <div key={color.name} className="flex flex-col items-center gap-1.5">
-                                                <RadioGroupItem value={color.name} id={`color-${color.name}`} className="peer sr-only" />
+                                                <RadioGroupItem
+                                                    value={color.name}
+                                                    id={`color-${color.name}`}
+                                                    className="peer sr-only"
+                                                />
                                                 <Label
                                                     htmlFor={`color-${color.name}`}
                                                     className="h-8 w-8 rounded-full border peer-data-[state=checked]:ring-2 ring-accent cursor-pointer"
@@ -112,15 +129,17 @@ export function ProductInfo({ product }: ProductInfoProps) {
                                     <Label className="text-base text-foreground">Talla</Label>
                                     <FormControl>
                                         <RadioGroup
-                                            onValueChange={(value) => {
-                                                field.onChange(value)
-                                            }}
+                                            onValueChange={(value) => field.onChange(value)}
                                             value={field.value as string | undefined}
                                             className="flex flex-wrap gap-2 mt-3"
                                         >
                                             {sizes.map((size) => (
                                                 <div key={size.value}>
-                                                    <RadioGroupItem value={size.value} id={`size-${size.value}`} className="peer sr-only" />
+                                                    <RadioGroupItem
+                                                        value={size.value}
+                                                        id={`size-${size.value}`}
+                                                        className="peer sr-only"
+                                                    />
                                                     <Label
                                                         htmlFor={`size-${size.value}`}
                                                         className="px-4 py-2 border rounded-md peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/60 cursor-pointer hover:bg-secondary text-foreground"
@@ -156,11 +175,18 @@ export function ProductInfo({ product }: ProductInfoProps) {
                                         <Input
                                             type="number"
                                             {...field}
-                                            onChange={(e) => field.onChange(Math.max(1, Number.parseInt(e.target.value) || 1))}
+                                            onChange={(e) =>
+                                                field.onChange(Math.max(1, Number.parseInt(e.target.value) || 1))
+                                            }
                                             className="w-20 text-center"
                                             readOnly
                                         />
-                                        <Button type="button" variant="outline" size="icon" onClick={() => field.onChange(field.value + 1)}>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => field.onChange(field.value + 1)}
+                                        >
                                             <Plus className="h-4 w-4" />
                                         </Button>
                                     </div>
@@ -171,9 +197,18 @@ export function ProductInfo({ product }: ProductInfoProps) {
                     />
                 </div>
 
-                <Button type="submit" className="w-full" size="lg">
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    Añadir al carrito
+                <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                    {isLoading ? (
+                        <>
+                            <Loader className="mr-2 h-5 w-5 animate-spin" />
+                            Añadiendo...
+                        </>
+                    ) : (
+                        <>
+                            <ShoppingCart className="mr-2 h-5 w-5" />
+                            Añadir al carrito
+                        </>
+                    )}
                 </Button>
 
                 <Accordion type="single" collapsible className="w-full">
@@ -188,4 +223,3 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </Form>
     )
 }
-

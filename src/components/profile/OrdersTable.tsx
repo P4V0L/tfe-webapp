@@ -46,7 +46,6 @@ export default function OrderTable({ orders }: { orders: ExtendedOrder[] }) {
         }
     }
 
-    // Sort orders by createdAt descending (newest first)
     const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     return (
