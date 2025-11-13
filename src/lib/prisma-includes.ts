@@ -1,6 +1,14 @@
 import { Prisma } from "@prisma/client";
 
 /**
+ * Standard user select for public display (name and image only).
+ */
+export const userPublicSelect = {
+  name: true,
+  image: true,
+} satisfies Prisma.UserSelect;
+
+/**
  * Standard include configuration for product queries.
  * Includes variants with size/color, images, categories, and reviews with user info.
  */
@@ -20,10 +28,7 @@ export const productInclude = {
   reviews: {
     include: {
       user: {
-        select: {
-          name: true,
-          image: true,
-        },
+        select: userPublicSelect,
       },
     },
   },

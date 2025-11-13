@@ -3,7 +3,7 @@
 import { ProductType } from '@prisma/client';
 import { db } from "@/lib/db";
 import { FullProduct } from "@/models/product";
-import { productInclude, cartItemInclude } from "@/lib/prisma-includes";
+import { productInclude, cartItemInclude, userPublicSelect } from "@/lib/prisma-includes";
 
 const prisma = db;
 
@@ -48,10 +48,7 @@ export async function getTestimonials() {
             where: { approved: true },
             include: {
                 user: {
-                    select: {
-                        name: true,
-                        image: true,
-                    },
+                    select: userPublicSelect,
                 },
             },
             orderBy: { createdAt: "desc" },
@@ -126,11 +123,8 @@ export async function getProductReviews(productId: string) {
             where: { productId },
             include: {
                 user: {
-                    select: {
-                        name: true,
-                        image: true
-                    }
-                }
+                    select: userPublicSelect,
+                },
             },
             orderBy: { createdAt: 'desc' }
         });
