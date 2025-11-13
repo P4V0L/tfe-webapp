@@ -1,10 +1,27 @@
 'use server';
 
-import {ProductType} from '@prisma/client';
-import {db} from "@/lib/db";
-import {FullProduct} from "@/models/product";
+import { ProductType } from '@prisma/client';
+import { db } from "@/lib/db";
+import { FullProduct } from "@/models/product";
+import { productInclude, cartItemInclude } from "@/lib/prisma-includes";
 
-const prisma = db
+const prisma = db;
+
+/**
+ * Builds a where clause for filtering products by category and type.
+ */
+function buildProductWhereClause(options?: { category?: string; type?: ProductType }) {
+  return {
+    ...(options?.category && {
+      categories: {
+        some: {
+          category: { slug: options.category },
+        },
+      },
+    }),
+    ...(options?.type && { type: options.type }),
+  };
+}
 
 export async function getUsers() {
     try {
@@ -55,40 +72,8 @@ export async function getTestimonials() {
 export async function getProducts(options?: { category?: string; type?: ProductType; }): Promise<FullProduct[]> {
     try {
         return await prisma.product.findMany({
-            where: {
-                ...(options?.category && {
-                    categories: {
-                        some: {
-                            category: {slug: options.category},
-                        },
-                    },
-                }),
-                ...(options?.type && {type: options.type}),
-            },
-            include: {
-                variants: {
-                    include: {
-                        size: true,
-                        color: true,
-                    },
-                },
-                images: true,
-                categories: {
-                    include: {
-                        category: true,
-                    },
-                },
-                reviews: {
-                    include: {
-                        user: {
-                            select: {
-                                name: true,
-                                image: true,
-                            },
-                        },
-                    },
-                },
-            },
+            where: buildProductWhereClause(options),
+            include: productInclude,
             orderBy: {createdAt: 'desc'},
         });
     } catch (error) {
@@ -100,40 +85,8 @@ export async function getProducts(options?: { category?: string; type?: ProductT
 export async function getTopProducts(options?: { category?: string; type?: ProductType; }): Promise<FullProduct[]> {
     try {
         return await prisma.product.findMany({
-            where: {
-                ...(options?.category && {
-                    categories: {
-                        some: {
-                            category: {slug: options.category},
-                        },
-                    },
-                }),
-                ...(options?.type && {type: options.type}),
-            },
-            include: {
-                variants: {
-                    include: {
-                        size: true,
-                        color: true,
-                    },
-                },
-                images: true,
-                categories: {
-                    include: {
-                        category: true,
-                    },
-                },
-                reviews: {
-                    include: {
-                        user: {
-                            select: {
-                                name: true,
-                                image: true,
-                            },
-                        },
-                    },
-                },
-            },
+            where: buildProductWhereClause(options),
+            include: productInclude,
             orderBy: {createdAt: 'desc'},
             take: 4,
         });
@@ -147,30 +100,7 @@ export async function getProductById(id: string) {
     try {
         return await prisma.product.findUnique({
             where: { id },
-            include: {
-                variants: {
-                    include: {
-                        size: true,
-                        color: true
-                    }
-                },
-                images: true,
-                categories: {
-                    include: {
-                        category: true
-                    }
-                },
-                reviews: {
-                    include: {
-                        user: {
-                            select: {
-                                name: true,
-                                image: true
-                            }
-                        }
-                    }
-                }
-            }
+            include: productInclude,
         });
     } catch (error) {
         console.error('Error fetching product:', error);
@@ -182,30 +112,7 @@ export async function getProductBySlug(slug: string): Promise<FullProduct | null
     try {
         return await prisma.product.findUnique({
             where: { slug },
-            include: {
-                variants: {
-                    include: {
-                        size: true,
-                        color: true,
-                    },
-                },
-                images: true,
-                categories: {
-                    include: {
-                        category: true,
-                    },
-                },
-                reviews: {
-                    include: {
-                        user: {
-                            select: {
-                                name: true,
-                                image: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: productInclude,
         });
     } catch (error) {
         console.error('Error fetching product by slug:', error);
@@ -276,17 +183,9 @@ export async function getCartByUserId(userId: string) {
             where: { userId },
             include: {
                 items: {
-                    include: {
-                        productVariant: {
-                            include: {
-                                product: true,
-                                size: true,
-                                color: true
-                            }
-                        }
-                    }
-                }
-            }
+                    include: cartItemInclude.productVariant,
+                },
+            },
         });
     } catch (error) {
         console.error('Error fetching cart:', error);
